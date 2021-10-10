@@ -1,9 +1,7 @@
 #!/usr/bin/python3
 
-# Program to install my usual environment on a freshly-installed Raspian
-
-# use ifconfig to get the address
-
+# Program to install my usual environment on a freshly-installed Raspian (or other system)
+# Run like this:
 # curl https://raw.githubusercontent.com/hillwithsmallfields/land/trunk/land | sudo python3
 
 import argparse
@@ -40,6 +38,10 @@ configuration = {
     'config-project': "JCGS-config",
     'github-list': "https://api.github.com/users/hillwithsmallfields/repos"
 }
+
+#################
+# File handling #
+#################
 
 dirmask = 0o777
 
@@ -113,6 +115,10 @@ def file_contents(filename):
             return filestream.read()
     return None
 
+##########################
+# Configuration handling #
+##########################
+
 def merge(old, new):
     """Merge two configurations."""
     for k, v in new.items():
@@ -164,6 +170,10 @@ def get_configuration(confname, existing=None):
     get_includes(existing)
     return existing
 
+#######################
+# Host and user setup #
+#######################
+
 def set_hostname(newname):
     """Set this machine's hostname."""
     with open("/etc/hostname", 'w') as namestream:
@@ -202,6 +212,10 @@ def add_user(user):
 
     return user
 
+###########
+# Actions #
+###########
+
 def git_clone(repo):
     """Clone a git repo, if we don't already have it.
     Since .ssh isn't yet set up, fetch with http and patch it to look like .git afterwards."""
@@ -219,6 +233,10 @@ def git_clone(repo):
 def sh(command):
     print("Running command", command)
     os.system(command)
+
+################
+# Main program #
+################
 
 def main():
 
@@ -331,12 +349,16 @@ def main():
         sh("mount " + ext_disk)
         if os.path.isdir(mount_point):
             user_dir = os.path.join(mount_point, "home", user)
+            take_ownership = configuration.get('take-ownership', False)
             if os.path.isdir(user_dir):
                 print("Linking user files in", user_dir, "from HDD")
                 for filename in glob.glob(user_dir+"/*"):
                     link = os.path.join(home_directory, os.path.basename(filename))
-                    print("  Linking", link, "to", filename)
-                    os.symlink(filename, link)
+                    if not os.path.exists(link):
+                        print("  Linking", link, "to", filename)
+                        os.symlink(filename, link)
+                        if take_ownership:
+                            sh("chown -r %s:%s %s", user, user, filename)
         else:
             print("No directory found at mount point", mount_point)
     else:
@@ -383,7 +405,7 @@ def main():
 
     if repos and repos_directory:
         repos_directory = os.path.expandvars(repos_directory)
-        print("Fetching %s into %s", repos, repos_directory)
+        print("Fetching", repos, "into", repos_directory)
         for repo in repos:
             author = git_repo_author(repo)
             author_directory = os.path.join(repos_directory, author)
