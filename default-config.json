@@ -1,0 +1,33 @@
+{"apt-packages": ["emacs",
+                  "ratpoison",
+                  "syncthing"],
+ "pip-packages": ["measurement",
+                  "ordered_set",
+                  "oura",
+                  "overpass2",
+                  "pycrypto",
+                  "pyowm",
+                  "python-decouple",
+                  "pyyaml",
+                  "sexpdata"],
+ "dot-files": [
+     "bashrc",
+     "bash_profile",
+     "emacs",
+     "signature",
+     "xinitrc"],
+
+ "ext-drive": "/dev/sda1",
+ "mount-point": "/mnt/hdd0",
+
+ "user": "jcgs",
+ "name": "John Sturdy",
+
+ "projects-directory": "open-projects/github.com/hillwithsmallfields",
+ "config-project": "JCGS-config",
+ "github-list": "https://api.github.com/users/hillwithsmallfields/repos",
+
+ "repos-directory": "open-projects",
+ "git-repos": [
+     "https://github.com/coddingtonbear/python-myfitnesspal.git"]
+}
