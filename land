@@ -17,6 +17,7 @@ import requests
 import shutil
 import socket
 import sys
+import uuid
 
 configuration = {
     'apt-packages': [
@@ -84,6 +85,65 @@ def model():
     else:
         return "not-a-pi"
 
+def file_contents(filename):
+    if os.path.exists(filename):
+        with open(filename) as filestream:
+            return filestream.read()
+    return None
+
+def merge(old, new):
+    for k, v in new.items():
+        if k in old:
+            if isinstance(old[k], list):
+                if isinstance(v, list):
+                    old[k] += v
+                else:
+                    old[k].append(v)
+            elif isinstance(old[k], dict):
+                if isinstance(v, dict):
+                    merge(old[k], v)
+                else:
+                    print("cannot merge non-dict", v, "into dict")
+        else:
+            old[k] = v
+    return old
+
+def get_includes(conf):
+    """Process any includes and superclasses at the top level of a configuration."""
+    if 'includes' in conf:
+        includes = conf['includes']
+        del conf['includes']
+        for inc in includes:
+            print("fetching further configuration from", inc)
+            get_configuration(inc, conf)
+    if 'superclasses' in conf:
+        superclasses = conf['superclasses']
+        del conf['superclasses']
+        for sup in superclasses:
+            print("getting superclass", sup)
+            raise_subconf(conf, sup)
+
+def raise_subconf(conf, subconf_name):
+    """If a given name occurs in a configuration dictionary,
+    bring its contents up to the top level."""
+    if subconf_name in conf:
+        print("raising subconf", subconf_name)
+        merge(conf, conf['subconf_name'])
+    get_includes(conf)
+
+def get_configuration(confname, existing=None):
+    if existing is None:
+        existing = {}
+    print("getting configuration from", confname)
+    if confname.split(':', 1)[0] in ('https', 'http'):
+        conf = requests.get(confname).json()
+    else:
+        with open(confname) as confstream:
+            conf = json.load(confstream)
+    merge(existing, conf)
+    get_includes(existing)
+    return existing
+
 def set_hostname(newname):
     with open("/etc/hostname", 'w') as namestream:
         namestream.write(newname + '\n')
@@ -143,12 +203,13 @@ def main():
     parser.add_argument("--mount-point",
                         help="""The mount point to place the external drive at,
                         if there is one.""")
-    parser.add_argument("--configuration",
+    parser.add_argument("--config",
+                        default="https://raw.githubusercontent.com/hillwithsmallfields/land/land.json",
                         help="""Filename or URL (JSON) overriding built-in settings.
                         Command line --user, --name, and --host override this file.
-                        If the string has % in it, the model of the Pi is substituted.
-                        Use %.1s to get a single digit or Z for Zero or C for
-                        Compute Module or M for the original model.""")
+                        If the string has % in it, named %-substitution is done,
+                        with a dictionary binding 'origin-hostname', 'model', 'mac-addr',
+                        and 'serial'.""")
     parser.add_argument("--default-config",
                         action='store_true',
                         help="""Use a standard configuration file.""")
@@ -156,33 +217,56 @@ def main():
                         action='store_true',
                         help="""Use a standard configuration file which is different
                         for each model of Pi.""")
+    parser.add_argument("--host-class",
+                        help="""The kind of installation you want.""")
     args = parser.parse_args()
 
     global configuration
 
-    confname = ("https://raw.githubusercontent.com/hillwithsmallfields/JCGS-config/master/pi-setup-config.json"
-                if args.default_config
-                else ("https://raw.githubusercontent.com/hillwithsmallfields/JCGS-config/master/pi-%.1s-setup-config.json"
-                      if args.auto_config
-                      else (args.configuration
-                            if args.configuration
-                            else None)))
+    on_pi = socket.gethostname() == "pi"
+    mac = uuid.getnode()        # not using getmac because it's not installed yet
 
-    if confname:
-        if '%' in confname:
-            confname %= model()
-        if confname.split(':', 1)[0] in ('https', 'http'):
-            configuration = requests.get(confname).json()
-        else:
-            with open(confname) as confstream:
-                configuration = json.load(confstream)
+    description = {
+        'original-hostname': socket.gethostname(),
+        'model': model()
+        'mac-addr': ':'.join(["%02x" % (mac >> x & 0xff) for x in range(0, 8*6, 8)][::-1]),
+        'serial': file_contents("/proc/device-tree/serial-number")
+        }
 
+    if args.host_class:
+        description['host-class'] = args.host_class
+
+    confname = (args.configuration
+                if args.configuration
+                else )
+
+    if '%' in confname:
+        confname %= description
+
+    configuration = get_configuration(confname)
+    if 'redirect' in configuration:
+        configuration = get_configuration(configuration['redirect'] % description,
+                                          configuration)
+
+    # Try various forms of host identity; possibly one of them will
+    # yield a host-class, and may also give us a hostname:
+    raise_subconf(configuration, description['original-hostname'])
+    raise_subconf(configuration, description['mac-addr'])
+    raise_subconf(configuration, description['serial'])
+    # There may be some information specific to an individual host,
+    # but by name rather than MAC address or serial number:
+    raise_subconf(configuration, configuration['hostname'])
+    # If we're going to get a host class, we will have got it by now:
+    raise_subconf(configuration, description.get('host-class'))
+    raise_subconf(configuration, configuration.get('host-class'))
+
+    # overrides from the command line:
     for k, v in vars(args).items():
         if v:
             configuration[k] = v
 
-    if configuration.get('host', "") != "":
-        set_hostname(configuration['host'])
+    if configuration.get('hostname', "") != "":
+        set_hostname(configuration['hostname'])
 
     hostname = socket.gethostname()
     hostaddr = socket.gethostbyname(hostname)

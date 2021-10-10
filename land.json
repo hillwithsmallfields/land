@@ -1,0 +1,49 @@
+{
+    "dc:a6:32:78:97:ed": {
+        "hostname": "shtogu",
+        "host-class": "noticeboard"
+    },
+    "noticeboard": {
+        "superclasses": ["assistant", "raspberry pi"],
+        "git-repos": ["git@github.com:hillwithsmallfields/noticeboard.git"]
+    },
+    "assistant": {
+        "superclasses": ["emacs", "myself"],
+        "git-repos": ["https://github.com/hillwithsmallfields/qs",
+                      "https://github.com/coddingtonbear/python-myfitnesspal.git"]
+    },
+    "emacs": {
+        "superclasses": ["visual"],
+        "apt-packages": ["emacs"],
+        "dot-files": ["emacs"],
+        "git-repos": [
+            "git@github.com:hillwithsmallfields/JCGS-emacs.git",
+            "git@github.com:hillwithsmallfields/JCGS-org-mode.git",
+            "git@github.com:hillwithsmallfields/JCGS-config.git"]
+    },
+    "visual": {
+        "dot-files": [
+            "xinitrc"
+        ]
+    },
+    "raspberry pi": {
+        "ext-drive": "/dev/sda1",
+        "mount-point": "/mnt/hdd0"
+    },
+    "development": {
+        "superclasses": ["emacs"],
+        "projects-directory": "open-projects/github.com/hillwithsmallfields",
+        "config-project": "JCGS-config",
+        "github-list": "https://api.github.com/users/hillwithsmallfields/repos",
+    },
+    "myself": {
+        "user": "jcgs",
+        "name": "John Sturdy",
+        "dot-files": ["signature"]
+    },
+    "dot-files": [
+        "bashrc",
+        "bash_profile",
+        "emacs"],
+    "repos-directory": "open-projects",
+}
