@@ -63,6 +63,13 @@ def append_to_line_starting(filename, incipit, addendum):
                 line = line[:-1] + addendum + line[-1]
             stream.write(line)
 
+def git_repo_author(repo):
+    if repo.startswith("https://github.com/"):
+        return "/".join(repo.split("/")[3:-1]) # from after the host to before the repo filename
+    if repo.startswith("git@github.com"):
+        return repo.split(':')[1].split('/')[0]
+    return "anon"
+
 def model():
     # https://gist.github.com/jperkin/c37a574379ef71e339361954be96be12
     # yields these (after the transformations we do):
@@ -337,17 +344,6 @@ def main():
             else:
                 sh("git clone " + repo['git_url'])
 
-        # Now copy my dotfiles into place:
-        dot_files = configuration.get('dot-files')
-        config_project = configuration.get('config-project')
-        if dot_files and config_project:
-            config_dir = os.path.join(projects_dir, config_project)
-            for dot_file in dot_files:
-                origin = os.path.join(config_dir, dot_file)
-                if os.path.isfile(origin):
-                    shutil.copy(origin,
-                                os.path.join(home_directory, "." + dot_file))
-
     repos = configuration.get('git-repos')
     # This should be relative to the user's home directory, or absolute
     # (avoiding any confusing about using $HOME as this program runs as
@@ -361,14 +357,23 @@ def main():
         repos_directory = os.path.expandvars(repos_directory)
         print("Fetching %s into %s", repos, repos_directory)
         for repo in repos:
-            # assuming github-style naming:
-            repo_name_parts = repo.split("/")
-            author = "/".join(repo_name_parts[3:-1]) # from after the host to before the repo filename
+            author = git_repo_author(repo)
             author_directory = os.path.join(repos_directory, author)
             os.makedirs(author_directory, dirmask, True)
             os.chdir(author_directory)
             print("cloning", repo, "under author directory", author_directory)
             sh("git clone " + repo)
+
+    # Now copy my dotfiles into place:
+    dot_files = configuration.get('dot-files')
+    config_project = configuration.get('config-project')
+    if dot_files and config_project:
+        config_dir = os.path.join(projects_dir, config_project)
+        for dot_file in dot_files:
+            origin = os.path.join(config_dir, dot_file)
+            if os.path.isfile(origin):
+                shutil.copy(origin,
+                            os.path.join(home_directory, "." + dot_file))
 
 if __name__ == "__main__":
     main()
