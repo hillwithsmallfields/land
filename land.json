@@ -59,7 +59,8 @@
     },
     "raspberry pi": {
         "ext-drive": "/dev/sda1",
-        "mount-point": "/mnt/hdd0"
+        "mount-point": "/mnt/hdd0",
+        "take-ownership": true
     },
     "development": {
         "superclasses": ["emacs"],
