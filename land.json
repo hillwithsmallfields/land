@@ -16,11 +16,11 @@
         "comment": "workbench machine for experiments"
     },
     "charger-assistant": {
-        "superclasses": ["assistant", "raspberry pi"]
+        "superclasses": ["assistant", "raspberry pi"],
         "TODO": "load battery monitor and charger system here"
     },
     "voice-assistant": {
-        "superclasses": ["assistant", "raspberry pi"]
+        "superclasses": ["assistant", "raspberry pi"],
         "TODO": "load mycroft stuff here"
     },
     "noticeboard": {
@@ -75,6 +75,6 @@
         "bashrc",
         "bash_profile"],
     "repos-directory": "open-projects",
-    "config-project": "JCGS-config",
+    "config-repo": "github.com/hillwithsmallfields/JCGS-config",
     "git-repos": ["git@github.com:hillwithsmallfields/JCGS-scripts.git"]
 }

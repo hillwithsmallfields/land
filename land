@@ -206,7 +206,7 @@ def git_clone(repo):
     """Clone a git repo, if we don't already have it.
     Since .ssh isn't yet set up, fetch with http and patch it to look like .git afterwards."""
     directory = os.path.basename(repo)[:-4]
-    if not os.path.directory(directory):
+    if not os.path.isdir(directory):
         original = repo
         if repo.startswith("git@github.com:"):
             repo = "https://github.com/" + repo[len("git@github.com:"):]
@@ -392,16 +392,16 @@ def main():
             print("cloning", repo, "under author directory", author_directory)
             git_clone(repo)
 
-    # Now copy my dotfiles into place:
-    dot_files = configuration.get('dot-files')
-    config_project = configuration.get('config-project')
-    if dot_files and config_project:
-        config_dir = os.path.join(projects_dir, config_project)
-        for dot_file in dot_files:
-            origin = os.path.join(config_dir, dot_file)
-            if os.path.isfile(origin):
-                shutil.copy(origin,
-                            os.path.join(home_directory, "." + dot_file))
+        # Now copy my dotfiles into place:
+        dot_files = configuration.get('dot-files')
+        config_project = configuration.get('config-repo')
+        if dot_files and config_project:
+            config_dir = os.path.join(repos_directory, config_project)
+            for dot_file in dot_files:
+                origin = os.path.join(config_dir, dot_file)
+                if os.path.isfile(origin):
+                    shutil.copy(origin,
+                                os.path.join(home_directory, "." + dot_file))
 
 if __name__ == "__main__":
     main()
