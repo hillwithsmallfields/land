@@ -128,7 +128,7 @@ def raise_subconf(conf, subconf_name):
     bring its contents up to the top level."""
     if subconf_name in conf:
         print("raising subconf", subconf_name)
-        merge(conf, conf['subconf_name'])
+        merge(conf, conf[subconf_name])
     get_includes(conf)
 
 def get_configuration(confname, existing=None):
@@ -167,7 +167,7 @@ def add_user(user):
     except KeyError:
         sh('adduser --disabled-password --gecos "%s" %s' % (configuration['name'], user))
         print("run 'sudo passwd %s' to set your password" % user)
-        print("then on desktop, do this: ssh-copy-id %s@%s" % (user, configuration['host']))
+        print("then on desktop, do this: ssh-copy-id %s@%s" % (user, configuration['hostname']))
 
     sh("ssh-keygen -A && update-rc.d ssh enable && invoke-rc.d ssh start") # from the insides of raspi-config
 
@@ -204,7 +204,7 @@ def main():
                         help="""The mount point to place the external drive at,
                         if there is one.""")
     parser.add_argument("--config",
-                        default="https://raw.githubusercontent.com/hillwithsmallfields/land/land.json",
+                        default="https://raw.githubusercontent.com/hillwithsmallfields/land/trunk/land.json",
                         help="""Filename or URL (JSON) overriding built-in settings.
                         Command line --user, --name, and --host override this file.
                         If the string has % in it, named %-substitution is done,
@@ -223,7 +223,6 @@ def main():
 
     global configuration
 
-    on_pi = socket.gethostname() == "pi"
     mac = uuid.getnode()        # not using getmac because it's not installed yet
 
     description = {
@@ -236,10 +235,7 @@ def main():
     if args.host_class:
         description['host-class'] = args.host_class
 
-    confname = (args.configuration
-                if args.configuration
-                else )
-
+    confname = args.config
     if '%' in confname:
         confname %= description
 
@@ -273,10 +269,14 @@ def main():
 
     print("Running on host", hostname, "at address", hostaddr)
 
-    for package in configuration['apt-packages']:
-        sh("apt-get install --assume-yes %s" % package)
-    for package in configuration['pip-packages']:
-        sh("pip3 install %s" % package)
+    if 'apt-packages' in configuration:
+        print("Installing these packages using apt:", ", ".join(configuration['apt-packages']))
+        for package in configuration['apt-packages']:
+            sh("apt-get install --assume-yes %s" % package)
+    if 'pip-packages' in configuration:
+        print("Installing these packages using pip:", ", ".join(configuration['pip-packages']))
+        for package in configuration['pip-packages']:
+            sh("pip3 install %s" % package)
 
     user = add_user(configuration.get('user'))
     home_directory = os.path.join("/home", user)
