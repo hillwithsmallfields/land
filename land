@@ -4,7 +4,7 @@
 
 # use ifconfig to get the address
 
-# curl https://raw.githubusercontent.com/hillwithsmallfields/land/trunk/land | sudo python3 - --default-config --host shtogu
+# curl https://raw.githubusercontent.com/hillwithsmallfields/land/trunk/land | sudo python3
 
 import argparse
 import getpass
@@ -228,7 +228,7 @@ def main():
 
     description = {
         'original-hostname': socket.gethostname(),
-        'model': model()
+        'model': model(),
         'mac-addr': ':'.join(["%02x" % (mac >> x & 0xff) for x in range(0, 8*6, 8)][::-1]),
         'serial': file_contents("/proc/device-tree/serial-number")
         }
