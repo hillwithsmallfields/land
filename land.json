@@ -9,8 +9,8 @@
     },
     "assistant": {
         "superclasses": ["emacs", "myself"],
-        "git-repos": ["https://github.com/hillwithsmallfields/qs",
-                      "https://github.com/coddingtonbear/python-myfitnesspal.git"],
+        "git-repos": ["git@github.com:hillwithsmallfields/qs.git",
+                      "git@github.com:coddingtonbear/python-myfitnesspal.git"],
         "pip-packages": [
             "pycrypto",
             "python-decouple",
