@@ -10,7 +10,13 @@
     "assistant": {
         "superclasses": ["emacs", "myself"],
         "git-repos": ["https://github.com/hillwithsmallfields/qs",
-                      "https://github.com/coddingtonbear/python-myfitnesspal.git"]
+                      "https://github.com/coddingtonbear/python-myfitnesspal.git"],
+        "pip-packages": [
+            "pycrypto",
+            "python-decouple",
+            "pyyaml",
+            "sexpdata"
+        ]
     },
     "emacs": {
         "superclasses": ["visual"],
@@ -34,7 +40,7 @@
         "superclasses": ["emacs"],
         "projects-directory": "open-projects/github.com/hillwithsmallfields",
         "config-project": "JCGS-config",
-        "github-list": "https://api.github.com/users/hillwithsmallfields/repos",
+        "github-list": "https://api.github.com/users/hillwithsmallfields/repos"
     },
     "myself": {
         "user": "jcgs",
@@ -43,7 +49,6 @@
     },
     "dot-files": [
         "bashrc",
-        "bash_profile",
-        "emacs"],
-    "repos-directory": "open-projects",
+        "bash_profile"],
+    "repos-directory": "open-projects"
 }
