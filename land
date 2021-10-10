@@ -46,24 +46,38 @@ dirmask = 0o777
 MODEL_FILENAME = "/proc/device-tree/model"
 
 def file_has_line_starting(filename, incipit):
+    """Return whether a file contains a line starting with a given marker."""
     with open(filename, 'r') as stream:
         return any((line.startswith(incipit) for line in stream))
 
 def append_to_file_if_missing(filename, incipit, addendum):
+    """If a file doesn't contain a line with a given marker,
+    add a specified string at the end."""
     if not file_has_line_starting(filename, incipit):
         with open(filename, 'a') as contents:
             contents.write(addendum)
 
-def append_to_line_starting(filename, incipit, addendum):
+def append_to_lines_starting(filename, incipit, addendum):
+    """To any lines in a file starting with a given marker,
+    ensure that they end in a given string."""
     with open(filename, 'r') as stream:
         lines = [line for line in stream]
     with open(filename, 'w') as stream:
         for line in lines:
-            if line.startswith(incipit):
+            if line.startswith(incipit) and not line.endswith(addendum):
                 line = line[:-1] + addendum + line[-1]
             stream.write(line)
 
+def replace_string_in_file(filename, oldstring, newstring):
+    """Replace all occurrences of a string in a file."""
+    with open(filename, 'r') as stream:
+        lines = [line for line in stream]
+    with open(filename, 'w') as stream:
+        for line in lines:
+            stream.write(line.replace(oldstring, newstring))
+
 def git_repo_author(repo):
+    """Get the user part of a repo URL."""
     if repo.startswith("https://github.com/"):
         return "/".join(repo.split("/")[3:-1]) # from after the host to before the repo filename
     if repo.startswith("git@github.com"):
@@ -93,12 +107,14 @@ def model():
         return "not-a-pi"
 
 def file_contents(filename):
+    """Return the contents of a file."""
     if os.path.exists(filename):
         with open(filename) as filestream:
             return filestream.read()
     return None
 
 def merge(old, new):
+    """Merge two configurations."""
     for k, v in new.items():
         if k in old:
             if isinstance(old[k], list):
@@ -121,27 +137,24 @@ def get_includes(conf):
         includes = conf['includes']
         del conf['includes']
         for inc in includes:
-            print("fetching further configuration from", inc)
             get_configuration(inc, conf)
     if 'superclasses' in conf:
         superclasses = conf['superclasses']
         del conf['superclasses']
         for sup in superclasses:
-            print("getting superclass", sup)
             raise_subconf(conf, sup)
 
 def raise_subconf(conf, subconf_name):
     """If a given name occurs in a configuration dictionary,
-    bring its contents up to the top level."""
+    bring its contents up to the top level, thus making it active."""
     if subconf_name in conf:
-        print("raising subconf", subconf_name)
         merge(conf, conf[subconf_name])
     get_includes(conf)
 
 def get_configuration(confname, existing=None):
+    """Fetch a configuration from file or the web."""
     if existing is None:
         existing = {}
-    print("getting configuration from", confname)
     if confname.split(':', 1)[0] in ('https', 'http'):
         conf = requests.get(confname).json()
     else:
@@ -152,6 +165,7 @@ def get_configuration(confname, existing=None):
     return existing
 
 def set_hostname(newname):
+    """Set this machine's hostname."""
     with open("/etc/hostname", 'w') as namestream:
         namestream.write(newname + '\n')
         oldname = socket.gethostname()
@@ -182,11 +196,25 @@ def add_user(user):
                               user,
                               "%s    ALL=(ALL:ALL) ALL\n" % user)
 
-    append_to_line_starting("/etc/group",
-                            "gpio",
-                            "," + user)
+    append_to_lines_starting("/etc/group",
+                             "gpio",
+                             "," + user)
 
     return user
+
+def git_clone(repo):
+    """Clone a git repo, if we don't already have it.
+    Since .ssh isn't yet set up, fetch with http and patch it to look like .git afterwards."""
+    directory = os.path.basename(repo)[:-4]
+    if not os.path.directory(directory):
+        original = repo
+        if repo.startswith("git@github.com:"):
+            repo = "https://github.com/" + repo[len("git@github.com:"):]
+        sh("git clone " + repo)
+        if repo != original:
+            replace_string_in_file(os.path.join(directory, ".git", "config"),
+                                   "https://github.com/",
+                                   "git@github.com:")
 
 def sh(command):
     print("Running command", command)
@@ -212,7 +240,7 @@ def main():
                         if there is one.""")
     parser.add_argument("--config",
                         default="https://raw.githubusercontent.com/hillwithsmallfields/land/trunk/land.json",
-                        help="""Filename or URL (JSON) overriding built-in settings.
+                        help="""Filename or URL () overriding built-in settings.
                         Command line --user, --name, and --host override this file.
                         If the string has % in it, named %-substitution is done,
                         with a dictionary binding 'origin-hostname', 'model', 'mac-addr',
@@ -342,7 +370,7 @@ def main():
             if os.path.isdir(os.path.join(projects_dir, repo['name'])):
                 print("Already got", repo['name'])
             else:
-                sh("git clone " + repo['git_url'])
+                git_clone(repo['git_url'])
 
     repos = configuration.get('git-repos')
     # This should be relative to the user's home directory, or absolute
@@ -362,7 +390,7 @@ def main():
             os.makedirs(author_directory, dirmask, True)
             os.chdir(author_directory)
             print("cloning", repo, "under author directory", author_directory)
-            sh("git clone " + repo)
+            git_clone(repo)
 
     # Now copy my dotfiles into place:
     dot_files = configuration.get('dot-files')
