@@ -3,6 +3,26 @@
         "hostname": "shtogu",
         "host-class": "noticeboard"
     },
+    "*mycroft-host-macaddr*": {
+        "hostname": "shteg",
+        "host-class": "voice-assistant"
+    },
+    "*garage-host-macaddr*": {
+        "hostname": "whortleberry",
+        "host-class": "charger-assistant"
+    },
+    "*fragaria-macaddr*": {
+        "hostname": "fragaria",
+        "comment": "workbench machine for experiments"
+    },
+    "charger-assistant": {
+        "superclasses": ["assistant", "raspberry pi"]
+        "TODO": "load battery monitor and charger system here"
+    },
+    "voice-assistant": {
+        "superclasses": ["assistant", "raspberry pi"]
+        "TODO": "load mycroft stuff here"
+    },
     "noticeboard": {
         "superclasses": ["assistant", "raspberry pi"],
         "git-repos": ["git@github.com:hillwithsmallfields/noticeboard.git"]
@@ -10,13 +30,18 @@
     "assistant": {
         "superclasses": ["emacs", "myself"],
         "git-repos": ["git@github.com:hillwithsmallfields/qs.git",
+                      "git@github.com:hillwithsmallfields/coimealta.git",
                       "git@github.com:coddingtonbear/python-myfitnesspal.git"],
         "pip-packages": [
+            "measurement",
+            "ordered_set",
+            "oura",
+            "overpass2",
             "pycrypto",
+            "pyowm",
             "python-decouple",
             "pyyaml",
-            "sexpdata"
-        ]
+            "sexpdata"]
     },
     "emacs": {
         "superclasses": ["visual"],
@@ -39,7 +64,6 @@
     "development": {
         "superclasses": ["emacs"],
         "projects-directory": "open-projects/github.com/hillwithsmallfields",
-        "config-project": "JCGS-config",
         "github-list": "https://api.github.com/users/hillwithsmallfields/repos"
     },
     "myself": {
@@ -50,5 +74,7 @@
     "dot-files": [
         "bashrc",
         "bash_profile"],
-    "repos-directory": "open-projects"
+    "repos-directory": "open-projects",
+    "config-project": "JCGS-config",
+    "git-repos": ["git@github.com:hillwithsmallfields/JCGS-scripts.git"]
 }
