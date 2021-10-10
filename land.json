@@ -17,7 +17,7 @@
     },
     "charger-assistant": {
         "superclasses": ["assistant", "raspberry pi"],
-        "TODO": "load battery monitor and charger system here"
+        "git-repos": ["git@github.com:hillwithsmallfields/LRembedded.git"]
     },
     "voice-assistant": {
         "superclasses": ["assistant", "raspberry pi"],
