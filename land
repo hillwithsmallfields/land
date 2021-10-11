@@ -78,12 +78,12 @@ def replace_string_in_file(filename, oldstring, newstring):
         for line in lines:
             stream.write(line.replace(oldstring, newstring))
 
-def git_repo_author(repo):
+def git_repo_site_and_author(repo):
     """Get the user part of a repo URL."""
     if repo.startswith("https://github.com/"):
-        return "/".join(repo.split("/")[3:-1]) # from after the host to before the repo filename
+        return "github.com", "/".join(repo.split("/")[3:-1]) # from after the host to before the repo filename
     if repo.startswith("git@github.com"):
-        return repo.split(':')[1].split('/')[0]
+        return "github.com", repo.split(':')[1].split('/')[0]
     return "anon"
 
 def model():
@@ -407,8 +407,8 @@ def main():
         repos_directory = os.path.expandvars(repos_directory)
         print("Fetching", repos, "into", repos_directory)
         for repo in repos:
-            author = git_repo_author(repo)
-            author_directory = os.path.join(repos_directory, author)
+            site, author = git_repo_site_and_author(repo)
+            author_directory = os.path.join(repos_directory, site, author)
             os.makedirs(author_directory, dirmask, True)
             os.chdir(author_directory)
             print("cloning", repo, "under author directory", author_directory)
