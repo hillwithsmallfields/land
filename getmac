@@ -1,0 +1,9 @@
+#!/usr/bin/python3
+
+# Program to report the MAC address of this host, in exactly the way
+# that 'land' will see it.
+
+import uuid
+
+mac = uuid.getnode()
+print(':'.join(["%02x" % (mac >> x & 0xff) for x in range(0, 8*6, 8)][::-1]))
