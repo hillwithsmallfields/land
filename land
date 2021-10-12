@@ -58,10 +58,12 @@ def replace_string_in_file(filename, oldstring, newstring):
 
 def git_repo_site_and_author(repo):
     """Get the user part of a repo URL."""
-    if repo.startswith("https://github.com/"):
-        return "github.com", "/".join(repo.split("/")[3:-1]) # from after the host to before the repo filename
-    if repo.startswith("git@github.com"):
-        return "github.com", repo.split(':')[1].split('/')[0]
+    matched = re.match("https://([^/]+)/", repo)
+    if matched:
+        return matched.group(1), "/".join(repo.split("/")[3:-1]) # from after the host to before the repo filename
+    matched = re.match("git@([^/]+):", repo)
+    if matched:
+        return matched.group(1), repo.split(':')[1].split('/')[0]
     return "anon"
 
 def model():
