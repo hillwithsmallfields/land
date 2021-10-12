@@ -166,19 +166,19 @@ def set_hostname(newname):
             for host in hosts:
                 hoststream.write(host)
 
-def add_user(user):
+def add_user(user, name, hostname):
     """Add the user (if not already present), with their password
     disabled but ssh login allowed.
-    Also put them in /etc/sudoers."""
+    Also put them in /etc/sudoers, and add them to the GPIO group."""
     if user and user == "":
         print("No user specified")
         return None
     try:
         _ = pwd.getpwnam(user)
     except KeyError:
-        sh('adduser --disabled-password --gecos "%s" %s' % (configuration['name'], user))
+        sh('adduser --disabled-password --gecos "%s" %s' % (name, user))
         print("run 'sudo passwd %s' to set your password" % user)
-        print("then on desktop, do this: ssh-copy-id %s@%s" % (user, configuration['hostname']))
+        print("then on desktop, do this: ssh-copy-id %s@%s" % (user, hostname))
 
     sh("ssh-keygen -A && update-rc.d ssh enable && invoke-rc.d ssh start") # from the insides of raspi-config
 
@@ -198,7 +198,8 @@ def add_user(user):
 
 def git_clone(repo):
     """Clone a git repo, if we don't already have it.
-    Since .ssh isn't yet set up, fetch with http and patch it to look like .git afterwards."""
+    Since .ssh isn't yet set up, fetch with http and patch it to look
+    like .git afterwards."""
     directory = os.path.basename(repo)[:-4]
     if not os.path.isdir(directory):
         original = repo
@@ -220,7 +221,6 @@ def sh(command):
 
 def assemble_configuration(args):
     """Assemble and return a configuration."""
-
     mac = uuid.getnode()        # not using getmac because it's not installed yet
 
     description = {
@@ -268,6 +268,7 @@ def assemble_configuration(args):
     return configuration
 
 def apply_config(configuration):
+    """Apply a configuration dictionary to the current host."""
     if configuration.get('hostname', "") != "":
         set_hostname(configuration['hostname'])
 
@@ -285,7 +286,9 @@ def apply_config(configuration):
         for package in configuration['pip-packages']:
             sh("pip3 install %s" % package)
 
-    user = add_user(configuration.get('user'))
+    user = add_user(configuration.get('user'),
+                    configuration.get('name'),
+                    hostname)
     home_directory = os.path.join("/home", user)
     print("Using", home_directory, "as home directory")
 
@@ -331,9 +334,9 @@ def apply_config(configuration):
     else:
         print("User not specified, so completing setup as root")
 
-    # This should be relative to the user's home directory, or absolute
-    # (avoiding any confusion about using $HOME as this program runs as
-    # root until it changes uid).
+    # This should be relative to the user's home directory, or
+    # absolute (avoiding any confusion about using $HOME coming from
+    # this program running as root until it changes uid).
     projects_dir_name = configuration.get('projects-directory')
     if projects_dir_name:
         projects_dir = (projects_dir_name
@@ -349,9 +352,9 @@ def apply_config(configuration):
                 git_clone(repo['git_url'])
 
     repos = configuration.get('git-repos')
-    # This should be relative to the user's home directory, or absolute
-    # (avoiding any confusing about using $HOME as this program runs as
-    # root until it changes uid).
+    # This should be relative to the user's home directory, or
+    # absolute (avoiding any confusing about using $HOME coming from
+    # this program running as root until it changes uid).
     repos_dir_name = configuration.get('repos-directory')
     repos_directory = (repos_dir_name
                        if repos_dir_name.startswith('/')
