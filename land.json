@@ -1,110 +1,116 @@
 {
-    "dc:a6:32:78:97:ed": {
-        "comment": "This will be the new noticeboard computer.",
-        "hostname": "shtogu",
-        "host-class": "noticeboard"
-    },
-    "10:0b:a9:eb:99:48": {
-        "comment": "The laptop covered in conference and project stickers.",
-        "hostname": "elijah",
-        "host-class": "personal-laptop"
-    },
-    "*second-laptop-macaddr*": {
-        "comment": "The sticker-free laptop.",
-        "hostname": "elisha",
-        "host-class": "personal-laptop"
-    },
-    "*mycroft-host-macaddr*": {
-        "hostname": "shteg",
-        "host-class": "voice-assistant"
-    },
-    "b8:27:eb:f7:3a:b4": {
-        "comment": "This is the old/current noticeboard computer, and will become the garage computer.",
-        "hostname": "whortleberry",
-        "host-class": "noticeboard"
-    },
-    "*garage-host-macaddr*": {
-        "comment": "Whortleberry will move to this once replaced as the noticeboard computer.",
-        "hostname": "whortleberry",
-        "host-class": "charger-assistant"
-    },
-    "*fragaria-macaddr*": {
-        "hostname": "fragaria",
-        "comment": "workbench machine for experiments"
+    "hosts": {
+        "dc:a6:32:78:97:ed": {
+            "comment": "This will be the new noticeboard computer.",
+            "hostname": "shtogu",
+            "host-class": "noticeboard"
+        },
+        "10:0b:a9:eb:99:48": {
+            "comment": "The laptop covered in conference and project stickers.",
+            "hostname": "elijah",
+            "host-class": "personal-laptop"
+        },
+        "*second-laptop-macaddr*": {
+            "comment": "The sticker-free laptop.",
+            "hostname": "elisha",
+            "host-class": "personal-laptop"
+        },
+        "*mycroft-host-macaddr*": {
+            "hostname": "shteg",
+            "host-class": "voice-assistant"
+        },
+        "b8:27:eb:f7:3a:b4": {
+            "comment": "This is the old/current noticeboard computer, and will become the garage computer.",
+            "hostname": "whortleberry",
+            "host-class": "noticeboard"
+        },
+        "*garage-host-macaddr*": {
+            "comment": "Whortleberry will move to this once replaced as the noticeboard computer.",
+            "hostname": "whortleberry",
+            "host-class": "charger-assistant"
+        },
+        "*fragaria-macaddr*": {
+            "hostname": "fragaria",
+            "comment": "workbench machine for experiments"
+        }
     },
 
-    "charger-assistant": {
-        "comment": "Combines organizational assistant with monitoring batteries on float charge.",
-        "superclasses": ["assistant", "raspberry pi"],
-        "git-repos": ["git@github.com:hillwithsmallfields/LRembedded.git"]
+    "host-classes": {
+        "charger-assistant": {
+            "comment": "Combines organizational assistant with monitoring batteries on float charge.",
+            "superclasses": ["assistant", "raspberry pi"],
+            "git-repos": ["git@github.com:hillwithsmallfields/LRembedded.git"]
+        },
+        "voice-assistant": {
+            "comment": "My usual organizational assistant, plus Mycroft.ai.",
+            "superclasses": ["assistant", "raspberry pi"],
+            "TODO": "load mycroft stuff here"
+        },
+        "noticeboard": {
+            "comment": "My main organizational assistant: a noticeboard with a screen embedded in it.",
+            "superclasses": ["assistant", "raspberry pi"],
+            "git-repos": ["git@github.com:hillwithsmallfields/noticeboard.git"]
+        },
+        "personal-laptop": {
+            "superclasses": ["myself", "development"]
+        },
+        "assistant": {
+            "comment": "My main personal organizing and Quantified Self system.",
+            "superclasses": ["emacs", "myself"],
+            "git-repos": ["git@github.com:hillwithsmallfields/qs.git",
+                          "git@github.com:hillwithsmallfields/coimealta.git",
+                          "git@github.com:coddingtonbear/python-myfitnesspal.git"],
+            "pip-packages": [
+                "measurement",
+                "ordered_set",
+                "oura",
+                "overpass2",
+                "pycrypto",
+                "pyowm",
+                "python-decouple",
+                "pyyaml",
+                "sexpdata"]
+        },
+        "emacs": {
+            "superclasses": ["visual"],
+            "apt-packages": ["emacs"],
+            "dot-files": ["emacs"],
+            "git-repos": [
+                "git@github.com:hillwithsmallfields/JCGS-emacs.git",
+                "git@github.com:hillwithsmallfields/JCGS-org-mode.git",
+                "git@github.com:hillwithsmallfields/JCGS-config.git"]
+        },
+        "visual": {
+            "dot-files": [
+                "xinitrc"
+            ]
+        },
+        "raspberry pi": {
+            "ext-drive": "/dev/sda1",
+            "mount-point": "/mnt/hdd0",
+            "take-ownership": true
+        },
+        "development": {
+            "comment": "Machines which I use interactively for development.",
+            "superclasses": ["emacs"],
+            "projects-directory": "open-projects/github.com/hillwithsmallfields",
+            "github-list": "https://api.github.com/users/hillwithsmallfields/repos"
+        },
+        "myself": {
+            "comment": "My personal stuff, as in related to me as a person.",
+            "user": "jcgs",
+            "name": "John Sturdy",
+            "dot-files": ["signature"]
+        }
     },
-    "voice-assistant": {
-        "comment": "My usual organizational assistant, plus Mycroft.ai.",
-        "superclasses": ["assistant", "raspberry pi"],
-        "TODO": "load mycroft stuff here"
-    },
-    "noticeboard": {
-        "comment": "My main organizational assistant: a noticeboard with a screen embedded in it.",
-        "superclasses": ["assistant", "raspberry pi"],
-        "git-repos": ["git@github.com:hillwithsmallfields/noticeboard.git"]
-    },
-    "personal-laptop": {
-        "superclasses": ["myself", "development"]
-    },
-    "assistant": {
-        "comment": "My main personal organizing and Quantified Self system.",
-        "superclasses": ["emacs", "myself"],
-        "git-repos": ["git@github.com:hillwithsmallfields/qs.git",
-                      "git@github.com:hillwithsmallfields/coimealta.git",
-                      "git@github.com:coddingtonbear/python-myfitnesspal.git"],
-        "pip-packages": [
-            "measurement",
-            "ordered_set",
-            "oura",
-            "overpass2",
-            "pycrypto",
-            "pyowm",
-            "python-decouple",
-            "pyyaml",
-            "sexpdata"]
-    },
-    "emacs": {
-        "superclasses": ["visual"],
-        "apt-packages": ["emacs"],
-        "dot-files": ["emacs"],
-        "git-repos": [
-            "git@github.com:hillwithsmallfields/JCGS-emacs.git",
-            "git@github.com:hillwithsmallfields/JCGS-org-mode.git",
-            "git@github.com:hillwithsmallfields/JCGS-config.git"]
-    },
-    "visual": {
+
+    "global": {
         "dot-files": [
-            "xinitrc"
-        ]
-    },
-    "raspberry pi": {
-        "ext-drive": "/dev/sda1",
-        "mount-point": "/mnt/hdd0",
-        "take-ownership": true
-    },
-    "development": {
-        "comment": "Machines which I use interactively for development.",
-        "superclasses": ["emacs"],
-        "projects-directory": "open-projects/github.com/hillwithsmallfields",
-        "github-list": "https://api.github.com/users/hillwithsmallfields/repos"
-    },
-    "myself": {
-        "comment": "My personal stuff, as in related to me as a person.",
-        "user": "jcgs",
-        "name": "John Sturdy",
-        "dot-files": ["signature"]
-    },
-
-    "dot-files": [
-        "bashrc",
-        "bash_profile"],
-    "repos-directory": "open-projects",
-    "config-repo": "github.com/hillwithsmallfields/JCGS-config",
-    "git-repos": ["git@github.com:hillwithsmallfields/JCGS-scripts.git",
-                  "git@github.com:hillwithsmallfields/JCGS-config.git"]
+            "bashrc",
+            "bash_profile"],
+        "repos-directory": "open-projects",
+        "config-repo": "github.com/hillwithsmallfields/JCGS-config",
+        "git-repos": ["git@github.com:hillwithsmallfields/JCGS-scripts.git",
+                      "git@github.com:hillwithsmallfields/JCGS-config.git"]
+    }
 }
