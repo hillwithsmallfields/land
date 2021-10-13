@@ -267,6 +267,86 @@ def assemble_configuration(args):
 
     return configuration
 
+def remount(ext_disk, mount_point, link_to_home, take_ownership):
+    """Move a partition to a new mount point.
+    Also, optionally make symlinks from the user's home directory to
+    everything in a home-like directory in the partition, and optionally
+    transfer ownership of the link targets to the user."""
+    if ext_disk and os.path.exists(ext_disk) and mount_point:
+        print("Moving", ext_disk, "to mount point", mount_point)
+        sh("umount " + ext_disk)
+        append_to_file_if_missing("/etc/fstab",
+                                  ext_disk,
+                                  "%s %s ext4 defaults 0 0\n" % (ext_disk, mount_point))
+        os.makedirs(mount_point, dirmask, True)
+        sh("mount " + ext_disk)
+        if link_to_home and os.path.isdir(mount_point):
+            user_dir = os.path.join(mount_point, "home", user)
+            if os.path.isdir(user_dir):
+                print("Linking user files in", user_dir, "from HDD")
+                for filename in glob.glob(user_dir+"/*"):
+                    link = os.path.join(home_directory, os.path.basename(filename))
+                    if not os.path.exists(link):
+                        print("  Linking", link, "to", filename)
+                        os.symlink(filename, link)
+                        if take_ownership:
+                            sh("chown -r %s:%s %s", user, user, filename)
+        else:
+            print("No directory found at mount point", mount_point)
+    else:
+        print("No external disk found")
+
+def get_user_projects(configuration, home_directory):
+    """Get the user's collection of projects from a network repository.
+This currently assumes github's repo listing API>"""
+    # This should be relative to the user's home directory, or
+    # absolute (avoiding any confusion about using $HOME coming from
+    # this program running as root until it changes uid).
+    projects_dir_name = configuration.get('projects-directory')
+    if projects_dir_name:
+        projects_dir = (projects_dir_name
+                        if os.path.isabs(projects_dir_name)
+                        else os.path.join(home_directory, projects_dir_name))
+        os.makedirs(projects_dir)
+        os.chdir(projects_dir)
+        print("Cloning projects into", projects_dir)
+        for repo in requests.get(configuration['github-list']).json():
+            if os.path.isdir(os.path.join(projects_dir, repo['name'])):
+                print("Already got", repo['name'])
+            else:
+                git_clone(repo['git_url'])
+
+def get_repos(configuration, home_directory, repos, repos_dir_name):
+    # This should be relative to the user's home directory, or
+    # absolute (avoiding any confusing about using $HOME coming from
+    # this program running as root until it changes uid).
+    repos_directory = (repos_dir_name
+                       if os.path.isabs(repos_dir_name)
+                       else os.path.join(home_directory, repos_dir_name))
+
+    if repos and repos_directory:
+        repos_directory = os.path.expandvars(repos_directory)
+        print("Fetching", repos, "into", repos_directory)
+        for repo in repos:
+            site, author = git_repo_site_and_author(repo)
+            author_directory = os.path.join(repos_directory, site, author)
+            os.makedirs(author_directory, dirmask, True)
+            os.chdir(author_directory)
+            print("cloning", repo, "under author directory", author_directory)
+            git_clone(repo)
+
+def install_dotfiles(configuration, home_directory, repos_dir):
+    """Copy the user's dotfiles into place."""
+    dot_files = configuration.get('dot-files')
+    config_project = configuration.get('config-repo')
+    if dot_files and config_project:
+        config_dir = os.path.join(repos_dir, config_project)
+        for dot_file in dot_files:
+            origin = os.path.join(config_dir, dot_file)
+            if os.path.isfile(origin):
+                shutil.copy(origin,
+                            os.path.join(home_directory, "." + dot_file))
+
 def apply_config(configuration):
     """Apply a configuration dictionary to the current host."""
     if configuration.get('hostname', "") != "":
@@ -290,37 +370,18 @@ def apply_config(configuration):
                     configuration.get('name'),
                     hostname)
     home_directory = os.path.join("/home", user)
-    print("Using", home_directory, "as home directory")
 
-    # If there is an external disk attached, put it where I want it:
-    ext_disk = configuration.get('ext-drive')
-    mount_point = configuration.get('mount-point')
+    for ext_disk, mount_description in configuration.get('mounts', {}).items():
+        remount(ext_disk,
+                mount_description['mount-point'],
+                mount_description['link-to-home'],
+                mount_description['take-ownership'])
 
-    if ext_disk and os.path.exists(ext_disk) and mount_point:
-        print("Moving", ext_disk, "to mount point", mount_point)
-        sh("umount " + ext_disk)
-        append_to_file_if_missing("/etc/fstab",
-                                  ext_disk,
-                                  "%s %s ext4 defaults 0 0\n" % (ext_disk, mount_point))
-        os.makedirs(mount_point, dirmask, True)
-        sh("mount " + ext_disk)
-        if os.path.isdir(mount_point):
-            user_dir = os.path.join(mount_point, "home", user)
-            take_ownership = configuration.get('take-ownership', False)
-            if os.path.isdir(user_dir):
-                print("Linking user files in", user_dir, "from HDD")
-                for filename in glob.glob(user_dir+"/*"):
-                    link = os.path.join(home_directory, os.path.basename(filename))
-                    if not os.path.exists(link):
-                        print("  Linking", link, "to", filename)
-                        os.symlink(filename, link)
-                        if take_ownership:
-                            sh("chown -r %s:%s %s", user, user, filename)
-        else:
-            print("No directory found at mount point", mount_point)
-    else:
-        print("No external disk found")
-
+    for system_directory in configuration.get('system-directories', []):
+        os.makedirs(system_directory, dirmask, True)
+    for root_action in configuration.get('root-actions', []):
+        sh(root_action)
+        
     # Do the rest as the new user
     if user:
         udata = pwd.getpwnam(user)
@@ -333,54 +394,16 @@ def apply_config(configuration):
         # os.setegid(gid)
     else:
         print("User not specified, so completing setup as root")
-
-    # This should be relative to the user's home directory, or
-    # absolute (avoiding any confusion about using $HOME coming from
-    # this program running as root until it changes uid).
-    projects_dir_name = configuration.get('projects-directory')
-    if projects_dir_name:
-        projects_dir = (projects_dir_name
-                        if projects_dir_name.startswith('/')
-                        else os.path.join(home_directory, projects_dir_name))
-        os.makedirs(projects_dir)
-        os.chdir(projects_dir)
-        print("Cloning projects into", projects_dir)
-        for repo in requests.get(configuration['github-list']).json():
-            if os.path.isdir(os.path.join(projects_dir, repo['name'])):
-                print("Already got", repo['name'])
-            else:
-                git_clone(repo['git_url'])
-
-    repos = configuration.get('git-repos')
-    # This should be relative to the user's home directory, or
-    # absolute (avoiding any confusing about using $HOME coming from
-    # this program running as root until it changes uid).
-    repos_dir_name = configuration.get('repos-directory')
-    repos_directory = (repos_dir_name
-                       if repos_dir_name.startswith('/')
-                       else os.path.join(home_directory, repos_dir_name))
-
-    if repos and repos_directory:
-        repos_directory = os.path.expandvars(repos_directory)
-        print("Fetching", repos, "into", repos_directory)
-        for repo in repos:
-            site, author = git_repo_site_and_author(repo)
-            author_directory = os.path.join(repos_directory, site, author)
-            os.makedirs(author_directory, dirmask, True)
-            os.chdir(author_directory)
-            print("cloning", repo, "under author directory", author_directory)
-            git_clone(repo)
-
-        # Now copy my dotfiles into place:
-        dot_files = configuration.get('dot-files')
-        config_project = configuration.get('config-repo')
-        if dot_files and config_project:
-            config_dir = os.path.join(repos_directory, config_project)
-            for dot_file in dot_files:
-                origin = os.path.join(config_dir, dot_file)
-                if os.path.isfile(origin):
-                    shutil.copy(origin,
-                                os.path.join(home_directory, "." + dot_file))
+        
+    get_user_projects(configuration, home_directory)
+    repos_dir = configuration.get('repos-directory')
+    get_repos(configuration, home_directory, configuration.get('git-repos'), repos_dir)
+    install_dotfiles(configuration, home_directory, repos_dir)
+                    
+    for user_directory in configuration.get('user-directories', []):
+        os.makedirs(os.path.join(home_directory, user_directory), dirmask, True)
+    for user_action in configuration.get('user-actions', []):
+        sh(user_action)
 
 ################
 # Main program #

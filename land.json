@@ -69,7 +69,11 @@
                 "pyowm",
                 "python-decouple",
                 "pyyaml",
-                "sexpdata"]
+                "sexpdata"],
+            "user-directories": [
+                "public_html",
+                "org"
+                ]
         },
         "emacs": {
             "superclasses": ["visual"],
@@ -86,8 +90,12 @@
             ]
         },
         "raspberry pi": {
-            "ext-drive": "/dev/sda1",
-            "mount-point": "/mnt/hdd0",
+            "mounts": {
+                "/dev/sda1": {
+                    "mount-point": "/mnt/hdd0",
+                    "link-to-home": true,
+                    "take-ownership": true}
+            },
             "take-ownership": true
         },
         "development": {
