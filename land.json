@@ -73,7 +73,7 @@
             "user-directories": [
                 "public_html",
                 "org"
-                ]
+            ]
         },
         "emacs": {
             "superclasses": ["visual"],
@@ -109,16 +109,15 @@
             "user": "jcgs",
             "name": "John Sturdy",
             "dot-files": ["signature"]
+        },
+        "global": {
+            "dot-files": [
+                "bashrc",
+                "bash_profile"],
+            "repos-directory": "open-projects",
+            "config-repo": "github.com/hillwithsmallfields/JCGS-config",
+            "git-repos": ["git@github.com:hillwithsmallfields/JCGS-scripts.git",
+                          "git@github.com:hillwithsmallfields/JCGS-config.git"]
         }
-    },
-
-    "global": {
-        "dot-files": [
-            "bashrc",
-            "bash_profile"],
-        "repos-directory": "open-projects",
-        "config-repo": "github.com/hillwithsmallfields/JCGS-config",
-        "git-repos": ["git@github.com:hillwithsmallfields/JCGS-scripts.git",
-                      "git@github.com:hillwithsmallfields/JCGS-config.git"]
     }
 }

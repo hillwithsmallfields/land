@@ -13,11 +13,10 @@ The configuration file
 My default configuration file, which may be a useful example, is at
 https://raw.githubusercontent.com/hillwithsmallfields/land/trunk/land.json
 
-There are three sections to the config file:
+There are two sections to the config file:
 
   - hosts
   - host-classes
-  - global
   
 hosts
 -----
@@ -42,6 +41,9 @@ This section defines named classes.
 The keys are the strings bound to "host-class" in the "hosts" section
 and to the elements of "superclasses" lists in this section.
 
+There is also a special key, 'global', which applies regardless of
+which classes are activated.
+
 The values in this section are dictionaries which can bind:
 
   - superclasses --- a list of classes to add when this class is used
@@ -63,8 +65,3 @@ The values in this section are dictionaries which can bind:
   - system-directories --- directories to make as root, should be absolute
   - user-directories --- directories to make as the user, relative to the user's home directory
 
-global
-------
-
-This can define any of the keys mentioned under host-classes, but
-applies regardless of which classes are activated.

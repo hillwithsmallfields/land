@@ -249,7 +249,7 @@ def assemble_configuration(args):
 
     # Try various forms of host identity; possibly one of them will
     # yield a host-class, and may also give us a hostname:
-    activate('global', all_configuration, configuration, host_classes)
+    activate('global', host_classes, configuration, host_classes)
     activate(description['original-hostname'], host_descriptions, configuration, host_classes)
     activate(description['mac-addr'], host_descriptions, configuration, host_classes)
     activate(description['serial'], host_descriptions, configuration, host_classes)
@@ -267,7 +267,8 @@ def assemble_configuration(args):
 
     return configuration
 
-def remount(ext_disk, mount_point, link_to_home, take_ownership):
+def remount(ext_disk, mount_point,
+            home_directory, user):
     """Move a partition to a new mount point.
     Also, optionally make symlinks from the user's home directory to
     everything in a home-like directory in the partition, and optionally
@@ -280,7 +281,7 @@ def remount(ext_disk, mount_point, link_to_home, take_ownership):
                                   "%s %s ext4 defaults 0 0\n" % (ext_disk, mount_point))
         os.makedirs(mount_point, dirmask, True)
         sh("mount " + ext_disk)
-        if link_to_home and os.path.isdir(mount_point):
+        if home_directory and os.path.isdir(mount_point):
             user_dir = os.path.join(mount_point, "home", user)
             if os.path.isdir(user_dir):
                 print("Linking user files in", user_dir, "from HDD")
@@ -289,8 +290,8 @@ def remount(ext_disk, mount_point, link_to_home, take_ownership):
                     if not os.path.exists(link):
                         print("  Linking", link, "to", filename)
                         os.symlink(filename, link)
-                        if take_ownership:
-                            sh("chown -r %s:%s %s", user, user, filename)
+                        if user:
+                            sh("chown -R %s:%s %s", user, user, filename)
         else:
             print("No directory found at mount point", mount_point)
     else:
@@ -316,10 +317,11 @@ This currently assumes github's repo listing API>"""
             else:
                 git_clone(repo['git_url'])
 
-def get_repos(configuration, home_directory, repos, repos_dir_name):
+def get_repos(configuration, home_directory, repos):
     # This should be relative to the user's home directory, or
     # absolute (avoiding any confusing about using $HOME coming from
     # this program running as root until it changes uid).
+    repos_dir_name = configuration.get('repos-directory')
     repos_directory = (repos_dir_name
                        if os.path.isabs(repos_dir_name)
                        else os.path.join(home_directory, repos_dir_name))
@@ -335,8 +337,9 @@ def get_repos(configuration, home_directory, repos, repos_dir_name):
             print("cloning", repo, "under author directory", author_directory)
             git_clone(repo)
 
-def install_dotfiles(configuration, home_directory, repos_dir):
+def install_dotfiles(configuration, home_directory):
     """Copy the user's dotfiles into place."""
+    repos_dir = configuration.get('repos-directory')
     dot_files = configuration.get('dot-files')
     config_project = configuration.get('config-repo')
     if dot_files and config_project:
@@ -369,19 +372,21 @@ def apply_config(configuration):
     user = add_user(configuration.get('user'),
                     configuration.get('name'),
                     hostname)
-    home_directory = os.path.join("/home", user)
+    home_directory = (pwd.getpwnam(user)[5]
+                      if user
+                      else os.path.join("/home", configuration.get('user')))
 
     for ext_disk, mount_description in configuration.get('mounts', {}).items():
         remount(ext_disk,
                 mount_description['mount-point'],
-                mount_description['link-to-home'],
-                mount_description['take-ownership'])
+                mount_description['link-to-home'] and home_directory,
+                mount_description['take-ownership'] and user)
 
     for system_directory in configuration.get('system-directories', []):
         os.makedirs(system_directory, dirmask, True)
     for root_action in configuration.get('root-actions', []):
         sh(root_action)
-        
+
     # Do the rest as the new user
     if user:
         udata = pwd.getpwnam(user)
@@ -394,12 +399,11 @@ def apply_config(configuration):
         # os.setegid(gid)
     else:
         print("User not specified, so completing setup as root")
-        
+
     get_user_projects(configuration, home_directory)
-    repos_dir = configuration.get('repos-directory')
-    get_repos(configuration, home_directory, configuration.get('git-repos'), repos_dir)
-    install_dotfiles(configuration, home_directory, repos_dir)
-                    
+    get_repos(configuration, home_directory, configuration.get('git-repos'))
+    install_dotfiles(configuration, home_directory)
+
     for user_directory in configuration.get('user-directories', []):
         os.makedirs(os.path.join(home_directory, user_directory), dirmask, True)
     for user_action in configuration.get('user-actions', []):
