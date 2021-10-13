@@ -1,7 +1,10 @@
 #!/usr/bin/python3
 
-# Program to install my usual environment on a freshly-installed Raspian (or other system)
-# Run like this:
+# Program to configure and install one of my usual environments on a
+# freshly-installed Raspian (or other system).
+#
+# Run like this, on the target host:
+#
 # curl https://raw.githubusercontent.com/hillwithsmallfields/land/trunk/land | sudo python3
 
 import argparse
@@ -15,6 +18,7 @@ import requests
 import shutil
 import socket
 import sys
+import time
 import uuid
 
 #################
@@ -291,7 +295,7 @@ def remount(ext_disk, mount_point,
                         print("  Linking", link, "to", filename)
                         os.symlink(filename, link)
                         if user:
-                            sh("chown -R %s:%s %s", user, user, filename)
+                            sh("chown -R %s:%s %s" % (user, user, filename))
         else:
             print("No directory found at mount point", mount_point)
     else:
@@ -409,11 +413,17 @@ def apply_config(configuration):
     for user_action in configuration.get('user-actions', []):
         sh(user_action)
 
+    if user:
+        print("Now run 'passwd %s' as root and set your initial user password." % user)
+        print("Then on your 'home' machine, you may want to do this: ssh-copy-id %s@%s" % (user, hostname))
+
 ################
 # Main program #
 ################
 
 def main():
+
+    start_time = time.time()
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--user",
@@ -463,6 +473,8 @@ def main():
         print("Assembled configuration", config)
     else:
         apply_config(config)
+
+    print("Setup took", time.time() - start_time, "seconds.")
 
 if __name__ == "__main__":
     main()
