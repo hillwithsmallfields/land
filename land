@@ -60,14 +60,16 @@ def replace_string_in_file(filename, oldstring, newstring):
         for line in lines:
             stream.write(line.replace(oldstring, newstring))
 
-def git_repo_site_and_author(repo):
-    """Get the user part of a repo URL."""
+def git_site_author_and_repo(repo):
+    """Get the user and author parts of a repo URL."""
     matched = re.match("https://([^/]+)/", repo)
     if matched:
-        return matched.group(1), "/".join(repo.split("/")[3:-1]) # from after the host to before the repo filename
+        parts = repo.split("/")
+        return matched.group(1), "/".join(parts[3:-1]), os.path.splitext(parts[-1])[0]
     matched = re.match("git@([^/]+):", repo)
     if matched:
-        return matched.group(1), repo.split(':')[1].split('/')[0]
+        parts = repo.split(':')[1].split('/')
+        return matched.group(1), parts[0], os.path.splitext(parts[1])[0]
     return "anon"
 
 def model():
@@ -336,12 +338,18 @@ def get_repos(configuration, home_directory, repos):
         repos_directory = os.path.expandvars(repos_directory)
         print("Fetching", repos, "into", repos_directory)
         for repo in repos:
-            site, author = git_repo_site_and_author(repo)
+            site, author, reponame = git_site_author_and_repo(repo)
             author_directory = os.path.join(repos_directory, site, author)
             os.makedirs(author_directory, dirmask, True)
-            os.chdir(author_directory)
-            print("cloning", repo, "under author directory", author_directory)
-            git_clone(repo)
+            repodir = os.path.join(author_directory, reponame)
+            if os.path.isdir(repodir):
+                print("updating", repo)
+                os.chdir(repodir)
+                sh("git pull")
+            else:
+                print("cloning", repo, "under author directory", author_directory)
+                os.chdir(author_directory)
+                git_clone(repo)
 
 def install_dotfiles(configuration, home_directory):
     """Copy the user's dotfiles into place."""
