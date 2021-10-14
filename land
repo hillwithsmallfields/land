@@ -117,6 +117,8 @@ def merge(old, new):
                     merge(old[k], v)
                 else:
                     print("cannot merge non-dict", v, "into dict")
+            else:
+                old[k] = v
         else:
             old[k] = v
     return old
