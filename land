@@ -348,11 +348,15 @@ def install_dotfiles(configuration, home_directory):
     repos_dir = configuration.get('repos-directory')
     dot_files = configuration.get('dot-files')
     config_project = configuration.get('config-repo')
+    print("dot_files are", dot_files, "and config_project is", config_project, "in the repos_dir", repos_dir)
     if dot_files and config_project:
         config_dir = os.path.join(repos_dir, config_project)
+        print("config dir is", config_dir)
         for dot_file in dot_files:
             origin = os.path.join(config_dir, dot_file)
+            print("considering copying", origin)
             if os.path.isfile(origin):
+                print("copying", origin, "with a dot, into", home_directory)
                 shutil.copy(origin,
                             os.path.join(home_directory, "." + dot_file))
 
