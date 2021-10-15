@@ -49,7 +49,10 @@
         "noticeboard": {
             "comment": "My main organizational assistant: a noticeboard with a screen embedded in it.",
             "superclasses": ["assistant", "raspberry pi"],
-            "git-repos": ["git@github.com:hillwithsmallfields/noticeboard.git"]
+            "git-repos": ["git@github.com:hillwithsmallfields/noticeboard.git"],
+            "apt-install": [
+                "motion"
+            ]
         },
         "personal-laptop": {
             "superclasses": ["myself", "development"]
