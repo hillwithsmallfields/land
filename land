@@ -378,13 +378,21 @@ def apply_config(configuration):
 
     print("Running on host", hostname, "at address", hostaddr)
 
-    if 'apt-packages' in configuration:
-        print("Installing these packages using apt:", ", ".join(configuration['apt-packages']))
-        for package in configuration['apt-packages']:
+    if 'apt-remove' in configuration:
+        print("Uninstalling these packages using apt:", ", ".join(configuration['apt-remove']))
+        for package in configuration['apt-remove']:
+            sh("apt-get remove %s" % package)
+    if 'pip-remove' in configuration:
+        print("Uninstalling these packages using pip:", ", ".join(configuration['pip-remove']))
+        for package in configuration['pip-remove']:
+            sh("pip3 uninstall %s" % package)
+    if 'apt-install' in configuration:
+        print("Installing these packages using apt:", ", ".join(configuration['apt-install']))
+        for package in configuration['apt-install']:
             sh("apt-get install --assume-yes %s" % package)
-    if 'pip-packages' in configuration:
-        print("Installing these packages using pip:", ", ".join(configuration['pip-packages']))
-        for package in configuration['pip-packages']:
+    if 'pip-install' in configuration:
+        print("Installing these packages using pip:", ", ".join(configuration['pip-install']))
+        for package in configuration['pip-install']:
             sh("pip3 install %s" % package)
 
     user = add_user(configuration.get('user'),

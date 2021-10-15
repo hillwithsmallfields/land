@@ -1,7 +1,9 @@
 # land
 Scripts for landing on a new host.
 
-Originally aimed at setting up a Raspberry Pi after I have overwritten its SD card with a new Raspbian; but I may make it more general.
+Originally aimed at setting up a Raspberry Pi after I have overwritten
+its SD card with a new Raspbian; but it is more general and should be
+usable on any Linux or similar system.
 
 Configurable using JSON, so the command lines don't get out of hand.
 
@@ -47,8 +49,10 @@ which classes are activated.
 The values in this section are dictionaries which can bind:
 
   - superclasses --- a list of classes to add when this class is used
-  - apt-packages --- a list of packages to fetch with apt-get
-  - pip-packages --- a list of packages to fetch with pip3
+  - apt-install --- a list of packages to fetch with apt-get
+  - apt-remove --- a list of packages to remove with apt-get (so you can re-install them with pip to get a more pi-specific version, for example)
+  - pip-install --- a list of packages to fetch with pip3
+  - pip-remove --- a list of packages to remove with pip3 (so you can re-install them with apt)
   - git-repos --- a list of clone URLs to use
   - dot-files --- a list of files to copy from your designated config repo
   - mounts --- a dictionary binding partition names to dictionaries defining:

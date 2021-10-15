@@ -60,7 +60,19 @@
             "git-repos": ["git@github.com:hillwithsmallfields/qs.git",
                           "git@github.com:hillwithsmallfields/coimealta.git",
                           "git@github.com:coddingtonbear/python-myfitnesspal.git"],
-            "pip-packages": [
+            "comment": "We need to remove the pre-installed versions of numpy and pandas so we can replace them with the ones from apt.",
+            "pip-remove": [
+                "numpy",
+                "pandas"
+            ],
+            "apt-install": [
+                "libatlas-base-dev",
+                "python3-numpy",
+                "python3-pandas",
+                "festival",
+                "syncthing"
+            ],
+            "pip-install": [
                 "measurement",
                 "ordered_set",
                 "oura",
@@ -69,15 +81,19 @@
                 "pyowm",
                 "python-decouple",
                 "pyyaml",
-                "sexpdata"],
+                "sexpdata",
+                "talkey",
+                "yaml"],
             "user-directories": [
+                "private_html",
                 "public_html",
-                "org"
+                "org",
+                "archive"
             ]
         },
         "emacs": {
             "superclasses": ["visual"],
-            "apt-packages": ["emacs"],
+            "apt-install": ["emacs"],
             "dot-files": ["emacs"],
             "git-repos": [
                 "git@github.com:hillwithsmallfields/JCGS-emacs.git",
@@ -95,8 +111,7 @@
                     "mount-point": "/mnt/hdd0",
                     "link-to-home": true,
                     "take-ownership": true}
-            },
-            "take-ownership": true
+            }
         },
         "development": {
             "comment": "Machines which I use interactively for development.",
