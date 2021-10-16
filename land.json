@@ -58,11 +58,12 @@
             "superclasses": ["myself", "development"]
         },
         "assistant": {
-            "comment": "My main personal organizing and Quantified Self system.",
+            "comment": "My main personal organizing and Quantified Self system.  I couldn't get orq-ql to install the proper way.",
             "superclasses": ["emacs", "myself"],
             "git-repos": ["git@github.com:hillwithsmallfields/qs.git",
                           "git@github.com:hillwithsmallfields/coimealta.git",
-                          "git@github.com:coddingtonbear/python-myfitnesspal.git"],
+                          "git@github.com:coddingtonbear/python-myfitnesspal.git",
+                          "git@github.com:alphapapa/org-ql.git"],
             "comment": "We need to remove the pre-installed versions of numpy and pandas so we can replace them with the ones from apt.",
             "pip-remove": [
                 "numpy",
@@ -85,6 +86,7 @@
                 "python-decouple",
                 "pyyaml",
                 "sexpdata",
+                "cssutils",
                 "talkey",
                 "yaml"],
             "user-directories": [
