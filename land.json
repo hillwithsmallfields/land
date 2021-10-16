@@ -49,7 +49,6 @@
         "noticeboard": {
             "comment": "My main organizational assistant: a noticeboard with a screen embedded in it.",
             "superclasses": ["assistant", "raspberry pi"],
-            "git-repos": ["git@github.com:hillwithsmallfields/noticeboard.git"],
             "apt-install": [
                 "motion"
             ]
@@ -60,11 +59,21 @@
         "assistant": {
             "comment": "My main personal organizing and Quantified Self system.  I couldn't get orq-ql to install the proper way.",
             "superclasses": ["emacs", "myself"],
-            "git-repos": ["git@github.com:hillwithsmallfields/qs.git",
+            "git-repos": ["git@github.com:hillwithsmallfields/noticeboard.git",
+                          "git@github.com:hillwithsmallfields/qs.git",
                           "git@github.com:hillwithsmallfields/coimealta.git",
+                          "git@github.com:hillwithsmallfields/makers.git",
                           "git@github.com:coddingtonbear/python-myfitnesspal.git",
-                          "git@github.com:alphapapa/org-ql.git"],
-            "comment": "We need to remove the pre-installed versions of numpy and pandas so we can replace them with the ones from apt.",
+                          "git@github.com:alphapapa/org-ql.git",
+                          "git@github.com:magnars/dash.el.git",
+                          "git@github.com:alphapapa/ts.el.git",
+                          "git@github.com:magnars/s.el.git",
+                          "git@github.com:emacsmirror/peg.git",
+                          "git@github.com:alphapapa/org-super-agenda.git",
+                          "git@github.com:Wilfred/ht.el.git",
+                          "git@github.com:emacsorphanage/ov.git"],
+            "explanation": "We need to remove the pre-installed versions of numpy and pandas so we can replace them with the ones from apt.",
+            "In progress": "install throw_out_your_templates_p3 (it is in makers.git) and make it accessible from qs/dashboard/dashboard.py",
             "pip-remove": [
                 "numpy",
                 "pandas"
