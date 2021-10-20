@@ -108,7 +108,11 @@
                 "private_html",
                 "public_html",
                 "org",
-                "archive"
+                "archive",
+                "common/var",
+                "common/health",
+                "common/finances",
+                "common/travel"
             ]
         },
         "emacs": {
