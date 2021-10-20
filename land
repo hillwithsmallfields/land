@@ -11,6 +11,7 @@ import argparse
 import getpass
 import glob
 import json
+import logging
 import os
 import pwd
 import re
@@ -118,7 +119,7 @@ def merge(old, new):
                 if isinstance(v, dict):
                     merge(old[k], v)
                 else:
-                    print("cannot merge non-dict", v, "into dict")
+                    logging.warn("cannot merge non-dict %s into dict", v)
             else:
                 old[k] = v
         else:
@@ -179,7 +180,7 @@ def add_user(user, name, hostname):
     disabled but ssh login allowed.
     Also put them in /etc/sudoers, and add them to the GPIO group."""
     if user and user == "":
-        print("No user specified")
+        logging.warn("No user specified to add_user")
         return None
     try:
         _ = pwd.getpwnam(user)
@@ -206,10 +207,11 @@ def add_user(user, name, hostname):
 
 def git_clone(repo, git_target_protocol='git'):
     """Clone a git repo, if we don't already have it.
-    Since .ssh isn't yet set up, fetch with http and patch it to look
+    Since .ssh isn't yet set up, fetch with http and optionally patch it to look
     like .git afterwards."""
     directory = os.path.basename(repo)[:-4]
     if not os.path.isdir(directory):
+        logging.info("cloning %s into %s", repo, directory)
         original = repo
         if repo.startswith("git@github.com:"):
             repo = "https://github.com/" + repo[len("git@github.com:"):]
@@ -220,7 +222,7 @@ def git_clone(repo, git_target_protocol='git'):
                                    "git@github.com:")
 
 def sh(command):
-    print("Running command", command)
+    logging.debug("Running command %s", command)
     os.system(command)
 
 ##############
@@ -282,7 +284,7 @@ def remount(ext_disk, mount_point,
     everything in a home-like directory in the partition, and optionally
     transfer ownership of the link targets to the user."""
     if ext_disk and os.path.exists(ext_disk) and mount_point:
-        print("Moving", ext_disk, "to mount point", mount_point)
+        logging.info("Moving %s to mount point %s", ext_disk, mount_point)
         sh("umount " + ext_disk)
         append_to_file_if_missing("/etc/fstab",
                                   ext_disk,
@@ -292,18 +294,18 @@ def remount(ext_disk, mount_point,
         if home_directory and os.path.isdir(mount_point):
             user_dir = os.path.join(mount_point, "home", user)
             if os.path.isdir(user_dir):
-                print("Linking user files in", user_dir, "from HDD")
+                logging.info("Linking user files in %s from HDD", user_dir)
                 for filename in glob.glob(user_dir+"/*"):
                     link = os.path.join(home_directory, os.path.basename(filename))
                     if not os.path.exists(link):
-                        print("  Linking", link, "to", filename)
+                        logging.info("  Linking %s to %s", link, filename)
                         os.symlink(filename, link)
                         if user:
                             sh("chown -R %s:%s %s" % (user, user, filename))
         else:
-            print("No directory found at mount point", mount_point)
+            logging.warn("No directory found at mount point %s", mount_point)
     else:
-        print("No external disk found")
+        logging.warn("External disk %s not found", ext_disk)
 
 def get_user_projects(configuration, home_directory):
     """Get the user's collection of projects from a network repository.
@@ -318,10 +320,10 @@ This currently assumes github's repo listing API>"""
                         else os.path.join(home_directory, projects_dir_name))
         os.makedirs(projects_dir)
         os.chdir(projects_dir)
-        print("Cloning projects into", projects_dir)
+        logging.info("Cloning projects into %s", projects_dir)
         for repo in requests.get(configuration['github-list']).json():
             if os.path.isdir(os.path.join(projects_dir, repo['name'])):
-                print("Already got", repo['name'])
+                logging.info("Already got repo %s", repo['name'])
             else:
                 git_clone(repo['git_url'], configuration['git-target-protocol'])
 
@@ -336,18 +338,18 @@ def get_repos(configuration, home_directory, repos):
 
     if repos and repos_directory:
         repos_directory = os.path.expandvars(repos_directory)
-        print("Fetching", repos, "into", repos_directory)
+        logging.info("Fetching %s into %s", repos, repos_directory)
         for repo in repos:
             site, author, reponame = git_site_author_and_repo(repo)
             author_directory = os.path.join(repos_directory, site, author)
             os.makedirs(author_directory, dirmask, True)
             repodir = os.path.join(author_directory, reponame)
             if os.path.isdir(repodir):
-                print("updating", repo)
+                logging.info("updating %s", repo)
                 os.chdir(repodir)
                 sh("git pull")
             else:
-                print("cloning", repo, "under author directory", author_directory)
+                logging.info("cloning %s under author directory %s", repo, author_directory)
                 os.chdir(author_directory)
                 git_clone(repo, configuration['git-target-protocol'])
 
@@ -356,15 +358,16 @@ def install_dotfiles(configuration, home_directory):
     repos_dir = configuration.get('repos-directory')
     dot_files = configuration.get('dot-files')
     config_project = configuration.get('config-repo')
-    print("dot_files are", dot_files, "and config_project is", config_project, "in the repos_dir", repos_dir)
+    logging.info("dot_files are %s and config_project is %s in the repos_dir %s",
+                 dot_files, config_project, repos_dir)
     if dot_files and config_project:
         config_dir = os.path.join(home_directory, repos_dir, config_project)
-        print("config dir is", config_dir)
+        logging.info("config dir is %s", config_dir)
         for dot_file in dot_files:
             origin = os.path.join(config_dir, dot_file)
-            print("considering copying", origin)
+            logging.debug("considering copying %s", origin)
             if os.path.isfile(origin):
-                print("copying", origin, "with a dot, into", home_directory)
+                logging.debug("copying %s with a dot, into %s", origin, home_directory)
                 shutil.copy(origin,
                             os.path.join(home_directory, "." + dot_file))
 
@@ -376,22 +379,22 @@ def apply_config(configuration):
     hostname = socket.gethostname()
     hostaddr = socket.gethostbyname(hostname)
 
-    print("Running on host", hostname, "at address", hostaddr)
+    logging.info("Running on host %s at address %s", hostname, hostaddr)
 
     if 'apt-remove' in configuration:
-        print("Uninstalling these packages using apt:", ", ".join(configuration['apt-remove']))
+        logging.info("Uninstalling these packages using apt: %s", ", ".join(configuration['apt-remove']))
         for package in configuration['apt-remove']:
             sh("apt-get remove %s" % package)
     if 'pip-remove' in configuration:
-        print("Uninstalling these packages using pip:", ", ".join(configuration['pip-remove']))
+        logging.info("Uninstalling these packages using pip: %s", ", ".join(configuration['pip-remove']))
         for package in configuration['pip-remove']:
             sh("pip3 uninstall %s" % package)
     if 'apt-install' in configuration:
-        print("Installing these packages using apt:", ", ".join(configuration['apt-install']))
+        logging.info("Installing these packages using apt: %s", ", ".join(configuration['apt-install']))
         for package in configuration['apt-install']:
             sh("apt-get install --assume-yes %s" % package)
     if 'pip-install' in configuration:
-        print("Installing these packages using pip:", ", ".join(configuration['pip-install']))
+        logging.info("Installing these packages using pip: %s", ", ".join(configuration['pip-install']))
         for package in configuration['pip-install']:
             sh("pip3 install %s" % package)
 
@@ -418,13 +421,13 @@ def apply_config(configuration):
         udata = pwd.getpwnam(user)
         uid = udata[2]
         gid = udata[3]
-        print("Doing rest of setup as user %s (uid %d, gid %d)"% (user, uid, gid))
+        logging.info("Doing rest of setup as user %s (uid %d, gid %d)" user, uid, gid)
         os.setgid(gid)          # can't do this after the setuid, because of not being root any longer
         os.setuid(uid)
         # os.seteuid(uid)
         # os.setegid(gid)
     else:
-        print("User not specified, so completing setup as root")
+        logging.info("User not specified, so completing setup as root")
 
     get_user_projects(configuration, home_directory)
     get_repos(configuration, home_directory, configuration.get('git-repos'))
@@ -483,7 +486,16 @@ def main():
                         host.""")
     parser.add_argument("--host-class",
                         help="""The kind of installation you want.""")
+    parser.add_argument("--logfile",
+                        default="landing.log")
+    parser.add_argument("--loglevel",
+                        help="""The loglevel to set.""")
     args = parser.parse_args()
+
+    logger = logging.getLogger('lander')
+    logging.baseConfig(filename=args.logfile)
+    if args.loglevel:
+        logger.setLevel(args.loglevel.upper())
 
     if getpass.getuser() != 'root' and not args.dry_run:
         print("This program must be run as root")
@@ -496,7 +508,7 @@ def main():
     else:
         apply_config(config)
 
-    print("Setup took", time.time() - start_time, "seconds.")
+    logging.info("Setup took", time.time() - start_time, "seconds.")
 
 if __name__ == "__main__":
     main()
