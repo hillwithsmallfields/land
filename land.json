@@ -121,6 +121,7 @@
             "dot-files": ["emacs"],
             "git-repos": [
                 "git@github.com:hillwithsmallfields/JCGS-emacs.git",
+                "git@github.com:hillwithsmallfields/JCGS-emacs-versor.git",
                 "git@github.com:hillwithsmallfields/JCGS-org-mode.git",
                 "git@github.com:hillwithsmallfields/JCGS-config.git"]
         },
