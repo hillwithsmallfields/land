@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Script to pack up keyfiles etc (the things you need to transfer to
+# the machine your config has landed on, that you can't put in open
+# source control systems).
+
+NEWHOST=$1
+
+cd $HOME
+find open-projects/github.com/hillwithsmallfields/ -name .env | xargs tar czf keys.tgz .ssh
+ls -l keys.tgz
+scp keys.tgz $USER@$NEWHOST:keys.tgz
+ssh $USER@$NEWHOST "tar xzf keys.tgz; rm keys.tgz"
+rm keys.tgz
