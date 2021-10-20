@@ -164,9 +164,9 @@ def get_configuration(confname, classes, existing=None):
 
 def set_hostname(newname):
     """Set this machine's hostname."""
+    oldname = socket.gethostname()
     with open("/etc/hostname", 'w') as namestream:
         namestream.write(newname + '\n')
-        oldname = socket.gethostname()
     if newname != oldname:
         with open("/etc/hosts", 'r') as hoststream:
             hosts = [host.replace(oldname, newname) for host in hoststream]
@@ -204,7 +204,7 @@ def add_user(user, name, hostname):
 # Actions #
 ###########
 
-def git_clone(repo):
+def git_clone(repo, git_target_protocol='git'):
     """Clone a git repo, if we don't already have it.
     Since .ssh isn't yet set up, fetch with http and patch it to look
     like .git afterwards."""
@@ -214,7 +214,7 @@ def git_clone(repo):
         if repo.startswith("git@github.com:"):
             repo = "https://github.com/" + repo[len("git@github.com:"):]
         sh("git clone " + repo)
-        if repo != original:
+        if repo != original and target_protocol == 'git':
             replace_string_in_file(os.path.join(directory, ".git", "config"),
                                    "https://github.com/",
                                    "git@github.com:")
@@ -323,7 +323,7 @@ This currently assumes github's repo listing API>"""
             if os.path.isdir(os.path.join(projects_dir, repo['name'])):
                 print("Already got", repo['name'])
             else:
-                git_clone(repo['git_url'])
+                git_clone(repo['git_url'], configuration['git-target-protocol'])
 
 def get_repos(configuration, home_directory, repos):
     # This should be relative to the user's home directory, or
@@ -349,7 +349,7 @@ def get_repos(configuration, home_directory, repos):
             else:
                 print("cloning", repo, "under author directory", author_directory)
                 os.chdir(author_directory)
-                git_clone(repo)
+                git_clone(repo, configuration['git-target-protocol'])
 
 def install_dotfiles(configuration, home_directory):
     """Copy the user's dotfiles into place."""
