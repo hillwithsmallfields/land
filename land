@@ -434,8 +434,10 @@ def apply_config(configuration):
     install_dotfiles(configuration, home_directory)
 
     for user_directory in configuration.get('user-directories', []):
+        log.info("Creating user directory %s", user_directory)
         os.makedirs(os.path.join(home_directory, user_directory), dirmask, True)
     for user_action in configuration.get('user-actions', []):
+        log.info("Running user action %s", user_action)
         sh(user_action)
 
     if user:
