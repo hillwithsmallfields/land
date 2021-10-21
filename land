@@ -421,7 +421,7 @@ def apply_config(configuration):
         udata = pwd.getpwnam(user)
         uid = udata[2]
         gid = udata[3]
-        logging.info("Doing rest of setup as user %s (uid %d, gid %d)" user, uid, gid)
+        logging.info("Doing rest of setup as user %s (uid %d, gid %d)", user, uid, gid)
         os.setgid(gid)          # can't do this after the setuid, because of not being root any longer
         os.setuid(uid)
         # os.seteuid(uid)
