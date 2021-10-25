@@ -8,6 +8,7 @@
         "60:a4:4c:31:61:26": {
             "hostname": "isaiah",
             "host-class": "desktop",
+            "no-partition-ops": true,
             "comment": "My main desktop.  Shouldn't need installing from this system, but this file is useful for defining repos to download."
         },
         "10:0b:a9:eb:99:48": {
@@ -146,7 +147,7 @@
         },
         "desktop": {
             "superclasses": ["assistant", "emacs", "development", "myself"]
-        }
+        },
         "myself": {
             "comment": "My personal stuff, as in related to me as a person.",
             "user": "jcgs",
