@@ -113,6 +113,8 @@
                 "common/var",
                 "common/health",
                 "common/finances",
+                "common/org",
+                "common/org/archive",
                 "common/travel"
             ]
         },
