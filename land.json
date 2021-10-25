@@ -137,7 +137,8 @@
                     "mount-point": "/mnt/hdd0",
                     "link-to-home": true,
                     "take-ownership": true}
-            }
+            },
+            "suppress-auto-login": true
         },
         "development": {
             "comment": "Machines which I use interactively for development.",

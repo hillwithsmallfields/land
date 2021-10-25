@@ -42,6 +42,18 @@ def append_to_file_if_missing(filename, incipit, addendum):
         with open(filename, 'a') as contents:
             contents.write(addendum)
 
+def prepend_to_lines_starting(filename, incipit, addendum):
+    """To any lines in a file starting with a given marker,
+    ensure that they start with a given string.
+    Meant for commenting out lines of config files."""
+    with open(filename, 'r') as stream:
+        lines = [line for line in stream]
+    with open(filename, 'w') as stream:
+        for line in lines:
+            if line.startswith(incipit):
+                line = addendum + line
+            stream.write(line)
+
 def append_to_lines_starting(filename, incipit, addendum):
     """To any lines in a file starting with a given marker,
     ensure that they end in a given string."""
@@ -414,6 +426,9 @@ def apply_config(configuration):
                     mount_description['mount-point'],
                     mount_description['link-to-home'] and home_directory,
                     mount_description['take-ownership'] and user)
+
+    if configuration.get('suppress-auto-login', False):
+        prepend_to_lines_starting("/etc/lightdm/lightdm.conf", "autologin-user", "# ")
 
     for system_directory in configuration.get('system-directories', []):
         os.makedirs(system_directory, dirmask, True)
