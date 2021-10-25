@@ -26,7 +26,7 @@ import uuid
 # File handling #
 #################
 
-dirmask = 0o777
+dirmask = 0o755
 
 MODEL_FILENAME = "/proc/device-tree/model"
 
@@ -166,9 +166,9 @@ def get_configuration(confname, classes, existing=None):
 def set_hostname(newname):
     """Set this machine's hostname."""
     oldname = socket.gethostname()
-    with open("/etc/hostname", 'w') as namestream:
-        namestream.write(newname + '\n')
     if newname != oldname:
+        with open("/etc/hostname", 'w') as namestream:
+            namestream.write(newname + '\n')
         with open("/etc/hosts", 'r') as hoststream:
             hosts = [host.replace(oldname, newname) for host in hoststream]
         with open("/etc/hosts", 'w') as hoststream:
@@ -189,7 +189,7 @@ def add_user(user, name, hostname):
         print("run 'sudo passwd %s' to set your password" % user)
         print("then on desktop, do this: ssh-copy-id %s@%s" % (user, hostname))
 
-    sh("ssh-keygen -A && update-rc.d ssh enable && invoke-rc.d ssh start") # from the insides of raspi-config
+        sh("ssh-keygen -A && update-rc.d ssh enable && invoke-rc.d ssh start") # from the insides of raspi-config
 
     append_to_file_if_missing("/etc/sudoers",
                               user,
@@ -212,11 +212,13 @@ def git_clone(repo, git_target_protocol='git'):
     directory = os.path.basename(repo)[:-4]
     if not os.path.isdir(directory):
         logging.info("cloning %s into %s", repo, directory)
+        print("cloning %s into %s" % (repo, directory))
         original = repo
         if repo.startswith("git@github.com:"):
             repo = "https://github.com/" + repo[len("git@github.com:"):]
+        print("cloning", repo)
         sh("git clone " + repo)
-        if repo != original and target_protocol == 'git':
+        if repo != original and git_target_protocol == 'git':
             replace_string_in_file(os.path.join(directory, ".git", "config"),
                                    "https://github.com/",
                                    "git@github.com:")
@@ -318,7 +320,7 @@ This currently assumes github's repo listing API>"""
         projects_dir = (projects_dir_name
                         if os.path.isabs(projects_dir_name)
                         else os.path.join(home_directory, projects_dir_name))
-        os.makedirs(projects_dir)
+        os.makedirs(projects_dir, dirmask, True)
         os.chdir(projects_dir)
         logging.info("Cloning projects into %s", projects_dir)
         for repo in requests.get(configuration['github-list']).json():
@@ -350,6 +352,7 @@ def get_repos(configuration, home_directory, repos):
                 sh("git pull")
             else:
                 logging.info("cloning %s under author directory %s", repo, author_directory)
+                print("cloning %s under author directory %s" % (repo, author_directory))
                 os.chdir(author_directory)
                 git_clone(repo, configuration['git-target-protocol'])
 
@@ -405,11 +408,12 @@ def apply_config(configuration):
                       if user
                       else os.path.join("/home", configuration.get('user')))
 
-    for ext_disk, mount_description in configuration.get('mounts', {}).items():
-        remount(ext_disk,
-                mount_description['mount-point'],
-                mount_description['link-to-home'] and home_directory,
-                mount_description['take-ownership'] and user)
+    if not configuration.get('no-partition-ops', False):
+        for ext_disk, mount_description in configuration.get('mounts', {}).items():
+            remount(ext_disk,
+                    mount_description['mount-point'],
+                    mount_description['link-to-home'] and home_directory,
+                    mount_description['take-ownership'] and user)
 
     for system_directory in configuration.get('system-directories', []):
         os.makedirs(system_directory, dirmask, True)
@@ -434,10 +438,10 @@ def apply_config(configuration):
     install_dotfiles(configuration, home_directory)
 
     for user_directory in configuration.get('user-directories', []):
-        log.info("Creating user directory %s", user_directory)
+        logging.info("Creating user directory %s", user_directory)
         os.makedirs(os.path.join(home_directory, user_directory), dirmask, True)
     for user_action in configuration.get('user-actions', []):
-        log.info("Running user action %s", user_action)
+        logging.info("Running user action %s", user_action)
         sh(user_action)
 
     if user:
@@ -495,7 +499,7 @@ def main():
     args = parser.parse_args()
 
     logger = logging.getLogger('lander')
-    logging.baseConfig(filename=args.logfile)
+    logging.basicConfig(filename=args.logfile)
     if args.loglevel:
         logger.setLevel(args.loglevel.upper())
 
@@ -506,7 +510,7 @@ def main():
     config = assemble_configuration(args)
 
     if args.dry_run:
-        print("Assembled configuration", config)
+        print("Assembled configuration", json.dumps(config, indent=4))
     else:
         apply_config(config)
 
