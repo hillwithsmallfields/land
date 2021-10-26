@@ -86,6 +86,7 @@
                 "pandas"
             ],
             "apt-install": [
+                "inotify-tools",
                 "libatlas-base-dev",
                 "python3-numpy",
                 "python3-pandas",
