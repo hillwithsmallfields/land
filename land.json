@@ -116,7 +116,8 @@
                 "common/finances",
                 "common/org",
                 "common/org/archive",
-                "common/travel"
+                "common/travel",
+                "common-backups"
             ]
         },
         "emacs": {
