@@ -26,18 +26,19 @@
             "host-class": "voice-assistant"
         },
         "b8:27:eb:f7:3a:b4": {
-            "comment": "This is the old/current noticeboard computer, and will become the garage computer.",
+            "comment": "This is the old/current noticeboard computer, and will become the garage computer (Pi 2).",
             "hostname": "whortleberry",
             "host-class": "noticeboard"
         },
         "*garage-host-macaddr*": {
-            "comment": "Whortleberry will move to this once replaced as the noticeboard computer.",
+            "comment": "Whortleberry will move to this once replaced as the noticeboard computer (Pi 2).",
             "hostname": "whortleberry",
             "host-class": "charger-assistant"
         },
-        "*fragaria-macaddr*": {
+        "b8:27:eb:b1:85:7a": {
             "hostname": "fragaria",
-            "comment": "workbench machine for experiments"
+            "comment": "workbench machine for experiments (Pi 3); for now using the noticeboard configuration while I develop the noticeboard auxiliary hardware.",
+            "host-class": "noticeboard"
         }
     },
 
