@@ -148,6 +148,7 @@
         "development": {
             "comment": "Machines which I use interactively for development.",
             "superclasses": ["emacs"],
+            "git-repos": ["git@github.com:rust-lang/rust-mode.git"],
             "projects-directory": "open-projects/github.com/hillwithsmallfields",
             "github-list": "https://api.github.com/users/hillwithsmallfields/repos"
         },
