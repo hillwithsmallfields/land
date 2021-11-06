@@ -386,15 +386,14 @@ def install_dotfiles(configuration, home_directory):
                 shutil.copy(origin,
                             os.path.join(home_directory, "." + dot_file))
 
-def apply_config(configuration):
-    """Apply a configuration dictionary to the current host."""
+def apply_root_config(configuration):
+    """Apply the part of the config that is done as root (as distinct from as the user)."""
     if configuration.get('hostname', "") != "":
         set_hostname(configuration['hostname'])
 
     hostname = socket.gethostname()
-    hostaddr = socket.gethostbyname(hostname)
 
-    logging.info("Running on host %s at address %s", hostname, hostaddr)
+    logging.info("Running on host %s", hostname)
 
     if 'apt-remove' in configuration:
         logging.info("Uninstalling these packages using apt: %s", ", ".join(configuration['apt-remove']))
@@ -435,19 +434,10 @@ def apply_config(configuration):
     for root_action in configuration.get('root-actions', []):
         sh(root_action)
 
-    # Do the rest as the new user
-    if user:
-        udata = pwd.getpwnam(user)
-        uid = udata[2]
-        gid = udata[3]
-        logging.info("Doing rest of setup as user %s (uid %d, gid %d)", user, uid, gid)
-        os.setgid(gid)          # can't do this after the setuid, because of not being root any longer
-        os.setuid(uid)
-        # os.seteuid(uid)
-        # os.setegid(gid)
-    else:
-        logging.info("User not specified, so completing setup as root")
+    return user, home_directory
 
+def apply_user_config(configuration, user, home_directory):
+    """Apply the part of the config that is done as the user (as distinct from as root)."""
     get_user_projects(configuration, home_directory)
     get_repos(configuration, home_directory, configuration.get('git-repos'))
     install_dotfiles(configuration, home_directory)
@@ -461,7 +451,28 @@ def apply_config(configuration):
 
     if user:
         print("Now run 'passwd %s' as root and set your initial user password." % user)
-        print("Then on your 'home' machine, you may want to do this: ssh-copy-id %s@%s" % (user, hostname))
+        print("Then on your 'home' machine, you may want to do this: ssh-copy-id %s@%s" % (user, socket.gethostname()))
+
+def switch_to_user(user):
+    # Do the rest as the new user
+    if user:
+        udata = pwd.getpwnam(user)
+        uid = udata[2]
+        gid = udata[3]
+        logging.info("Doing rest of setup as user %s (uid %d, gid %d)", user, uid, gid)
+        os.setgid(gid)          # can't do this after the setuid, because of not being root any longer
+        os.setuid(uid)
+        # os.seteuid(uid)
+        # os.setegid(gid)
+    else:
+        logging.info("User not specified, so completing setup as root")
+
+def apply_config(configuration):
+    """Apply a configuration dictionary to the current host."""
+
+    user, home_directory = apply_root_config(configuration)
+    switch_to_user(user)
+    apply_user_config(configuration, user, home_directory)
 
 ################
 # Main program #
@@ -507,6 +518,9 @@ def main():
                         host.""")
     parser.add_argument("--host-class",
                         help="""The kind of installation you want.""")
+    parser.add_argument("--user-only",
+                        action='store_true',
+                        help="""Only do the user part of the installation.""")
     parser.add_argument("--logfile",
                         default="landing.log")
     parser.add_argument("--loglevel",
@@ -518,7 +532,7 @@ def main():
     if args.loglevel:
         logger.setLevel(args.loglevel.upper())
 
-    if getpass.getuser() != 'root' and not args.dry_run:
+    if getpass.getuser() != 'root' and not args.dry_run and not args.user_only:
         print("This program must be run as root")
         sys.exit(1)
 
@@ -527,7 +541,10 @@ def main():
     if args.dry_run:
         print("Assembled configuration", json.dumps(config, indent=4))
     else:
-        apply_config(config)
+        if args.user_only:
+            apply_user_config(config, getpass.getuser(), os.path.expanduser("~"))
+        else:
+            apply_config(config)
 
     logging.info("Setup took", time.time() - start_time, "seconds.")
 
