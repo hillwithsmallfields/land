@@ -124,7 +124,7 @@ def merge(old, new):
         if k in old:
             if isinstance(old[k], list):
                 if isinstance(v, list):
-                    old[k] += v
+                    old[k] += [nv for nv in v if nv not in old[k]]
                 else:
                     old[k].append(v)
             elif isinstance(old[k], dict):
