@@ -521,11 +521,6 @@ def main():
                         help="""The full name of the user.""")
     parser.add_argument("--host",
                         help="""The name to give the host.""")
-    parser.add_argument("--ext-drive",
-                        help="""The expected name of an external drive.""")
-    parser.add_argument("--mount-point",
-                        help="""The mount point to place the external drive at,
-                        if there is one.""")
     parser.add_argument("--config",
                         default="https://raw.githubusercontent.com/hillwithsmallfields/land/trunk/land.json",
                         help="""Filename or URL () overriding built-in settings.
@@ -533,13 +528,6 @@ def main():
                         If the string has % in it, named %-substitution is done,
                         with a dictionary binding 'origin-hostname', 'model', 'mac-addr',
                         and 'serial'.""")
-    parser.add_argument("--default-config",
-                        action='store_true',
-                        help="""Use a standard configuration file.""")
-    parser.add_argument("--auto-config",
-                        action='store_true',
-                        help="""Use a standard configuration file which is different
-                        for each model of Pi.""")
     parser.add_argument("--dry-run",
                         action='store_true',
                         help="""Assemble a configuration, but don't apply it.""")
