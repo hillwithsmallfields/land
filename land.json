@@ -98,19 +98,20 @@
                 "python3-numpy",
                 "python3-pandas",
                 "syncthing"],
-            "pip-install": [
-                "measurement",
-                "ordered_set",
-                "oura",
-                "overpass2",
-                "pycrypto",
-                "pyowm",
-                "python-decouple",
-                "pyyaml",
-                "sexpdata",
-                "cssutils",
-                "talkey",
-                "yaml"],
+            "pip-install": {
+                "open-projects/github.com/hillwithsmallfields/noticeboard": [
+                    "measurement",
+                    "ordered_set",
+                    "oura",
+                    "overpass2",
+                    "pycrypto",
+                    "pyowm",
+                    "python-decouple",
+                    "pyyaml",
+                    "sexpdata",
+                    "cssutils",
+                    "talkey",
+                    "yaml"]},
             "user-directories": [
                 "private_html",
                 "public_html",
@@ -129,15 +130,17 @@
             "dot-files": ["emacs"],
             "git-repos": [
                 "git@github.com:hillwithsmallfields/JCGS-emacs.git",
-                "git@github.com:hillwithsmallfields/JCGS-emacs-versor.git",
+                "git@github.com:hillwithsmallfields/emacs-versor.git",
                 "git@github.com:hillwithsmallfields/JCGS-org-mode.git",
                 "git@github.com:hillwithsmallfields/JCGS-config.git"]},
         "general": {
             "apt-install": [
 		"gdb",
+		"gnuplot",
 		"keepass2",
 		"texlive",
                 "pandoc",
+                "plocate",
 		"ratpoison"]},
         "visual": {
             "dot-files": [
@@ -151,8 +154,9 @@
             "suppress-auto-login": true},
 	"learning": {
 	    "superclasses": [
-		"learning-proglang",
 		"learning-machine-learning",
+		"learning-proglang",
+                "learning-systems",
 		"learning-webstuff"],
 	    "apt-install": [
 		"jupyter"]},
@@ -169,6 +173,7 @@
 		"julia",
 		"libslang2-dev",
 		"lua5.4",
+                "nim",
 		"nodejs",
 		"octave",
 		"picolisp",
@@ -180,8 +185,13 @@
 		"swiprolog",
 		"ts-node",
 		"yforth"]},
+        "learning-systems": {
+            "apt-install": [
+                "memcached",
+                "redis"]},
 	"learning-webstuff": {
 	    "apt-install": [
+                "nginx",
 		"ruby-rails",
 		"python-flask"]},
 	"learning-machine-learning": {
@@ -192,8 +202,12 @@
 		"python3-torch",
                 "python3-numpy",
                 "python3-pandas"],
-	    "pip-install": [
-		"tensorflow"]},
+            "comment": "pytorch install instructions are from https://pytorch.org/get-started/locally/",
+	    "pip-install": {
+                "common/learning/tensorflow": [
+		    "tensorflow"],
+                "common/learning/pytorch": [
+                    "torch==1.10.0+cpu torchvision==0.11.1+cpu torchaudio==0.10.0+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html"]}},
 	"proglang": {
 	    "apt-install": [
 		"gcl"]},
@@ -205,14 +219,9 @@
 		"lilypond",
 		"music123",
 		"vorbis-tools"]},
-        "development": {
-            "comment": "Machines which I use interactively for development.",
-            "superclasses": ["emacs", "proglang"],
+        "build-emacs": {
 	    "apt-install": [
-		"build-essential",
 		"gettext",
-		"git",
-		"gnuplot",
 		"libbz2-dev",
 		"libcairo2-dev",
 		"libdjvulibre-dev",
@@ -239,7 +248,13 @@
 		"libx11-dev",
 		"libxft-dev",
 		"libxml2-dev",
-		"libxpm-dev",
+		"libxpm-dev"]},
+        "development": {
+            "comment": "Machines which I use interactively for development.",
+            "superclasses": ["build-emacs", "proglang"],
+	    "apt-install": [
+		"build-essential",
+		"git",
 		"make"],
             "git-repos": ["git@github.com:rust-lang/rust-mode.git"],
             "projects-directory": "open-projects/github.com/hillwithsmallfields",
@@ -253,6 +268,9 @@
             "dot-files": [
                 "bashrc",
                 "bash_profile"],
+	    "apt-install": [
+                "python3-pip",
+                "python3-venv"],
             "repos-directory": "open-projects",
             "git-target-protocol": "https",
             "config-repo": "github.com/hillwithsmallfields/JCGS-config",

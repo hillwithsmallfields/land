@@ -234,6 +234,7 @@ def git_clone(repo, git_target_protocol='git'):
             replace_string_in_file(os.path.join(directory, ".git", "config"),
                                    "https://github.com/",
                                    "git@github.com:")
+        sh("git config pull.ff only")
 
 def sh(command):
     logging.debug("Running command %s", command)
@@ -323,7 +324,7 @@ def remount(ext_disk, mount_point,
 
 def get_user_projects(configuration, home_directory):
     """Get the user's collection of projects from a network repository.
-This currently assumes github's repo listing API>"""
+This currently assumes github's repo listing API."""
     # This should be relative to the user's home directory, or
     # absolute (avoiding any confusion about using $HOME coming from
     # this program running as root until it changes uid).
@@ -333,12 +334,12 @@ This currently assumes github's repo listing API>"""
                         if os.path.isabs(projects_dir_name)
                         else os.path.join(home_directory, projects_dir_name))
         os.makedirs(projects_dir, dirmask, True)
-        os.chdir(projects_dir)
         logging.info("Cloning projects into %s", projects_dir)
         for repo in requests.get(configuration['github-list']).json():
             if os.path.isdir(os.path.join(projects_dir, repo['name'])):
                 logging.info("Already got repo %s", repo['name'])
             else:
+                os.chdir(projects_dir)
                 git_clone(repo['git_url'], configuration['git-target-protocol'])
 
 def get_repos(configuration, home_directory, repos):
@@ -360,6 +361,7 @@ def get_repos(configuration, home_directory, repos):
             repodir = os.path.join(author_directory, reponame)
             if os.path.isdir(repodir):
                 logging.info("updating %s", repo)
+                print("updating", repo)
                 os.chdir(repodir)
                 sh("git pull")
             else:
@@ -409,8 +411,13 @@ def apply_root_config(configuration):
             sh("apt-get install --assume-yes %s" % package)
     if 'pip-install' in configuration:
         logging.info("Installing these packages using pip: %s", ", ".join(configuration['pip-install']))
-        for package in configuration['pip-install']:
-            sh("pip3 install %s" % package)
+        for directory, packages in configuration['pip-install'].items():
+            if directory is None or directory == 'None':
+                for package in packages:
+                    sh("pip3 install %s" % package)
+            else:
+                # if it's for a specific directory, it will be done in apply_user_config
+                pass
 
     user = add_user(configuration.get('user'),
                     configuration.get('name'),
@@ -441,6 +448,27 @@ def apply_user_config(configuration, user, home_directory):
     get_user_projects(configuration, home_directory)
     get_repos(configuration, home_directory, configuration.get('git-repos'))
     install_dotfiles(configuration, home_directory)
+
+    if 'pip-install' in configuration:
+        logging.info("Installing these packages into virtual environments using pip: %s", ", ".join(configuration['pip-install']))
+        for directory, packages in configuration['pip-install'].items():
+            if directory is not None and directory != 'None':
+                if not os.path.isabs(directory):
+                    directory = os.path.join(home_directory, directory)
+                if not os.path.isdir(directory):
+                    os.makedirs(directory, dirmask, True)
+                os.chdir(directory)
+                env_name = "env"
+                env_dir = os.path.join(directory, env_name)
+                if not os.path.isdir(env_dir):
+                    logging.info("creating virtual environment %s", env_dir)
+                    sh("python3 -m venv " + env_name)
+                print("from", directory, "running", ". %s/bin/activate" % env_name, "which", "exists" if os.path.isfile("%s/bin/activate" % env_name) else "does not exist", "and env_dir is", env_dir, "and activate within that", "exists" if os.path.isfile(os.path.join(env_dir, "bin/activate")) else "does not exist")
+                # sh(". %s/bin/activate; pip3 install %s" % (env_name, " ".join(packages)))
+                sh(". %s/bin/activate; pip3 install %s" % (env_dir, " ".join(packages)))
+            else:
+                # if it's not for a specific directory, it will have been done in apply_root_config
+                pass
 
     for user_directory in configuration.get('user-directories', []):
         logging.info("Creating user directory %s", user_directory)
