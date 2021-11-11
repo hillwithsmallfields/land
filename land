@@ -213,9 +213,45 @@ def add_user(user, name, hostname):
 
     return user
 
+def switch_to_user(user):
+    # Do the rest as the new user
+    if user:
+        udata = pwd.getpwnam(user)
+        uid = udata[2]
+        gid = udata[3]
+        logging.info("Doing rest of setup as user %s (uid %d, gid %d)", user, uid, gid)
+        os.setgid(gid)          # can't do this after the setuid, because of not being root any longer
+        os.setuid(uid)
+        # os.seteuid(uid)
+        # os.setegid(gid)
+    else:
+        logging.info("User not specified, so completing setup as root")
+
+def install_dotfiles(configuration, home_directory):
+    """Copy the user's dotfiles into place."""
+    repos_dir = configuration.get('repos-directory')
+    dot_files = configuration.get('dot-files')
+    config_project = configuration.get('config-repo')
+    logging.info("dot_files are %s and config_project is %s in the repos_dir %s",
+                 dot_files, config_project, repos_dir)
+    if dot_files and config_project:
+        config_dir = os.path.join(home_directory, repos_dir, config_project)
+        logging.info("config dir is %s", config_dir)
+        for dot_file in dot_files:
+            origin = os.path.join(config_dir, dot_file)
+            logging.debug("considering copying %s", origin)
+            if os.path.isfile(origin):
+                logging.debug("copying %s with a dot, into %s", origin, home_directory)
+                shutil.copy(origin,
+                            os.path.join(home_directory, "." + dot_file))
+
 ###########
 # Actions #
 ###########
+
+def sh(command):
+    logging.debug("Running command %s", command)
+    os.system(command)
 
 def git_clone(repo, git_target_protocol='git'):
     """Clone a git repo, if we don't already have it.
@@ -236,9 +272,87 @@ def git_clone(repo, git_target_protocol='git'):
                                    "git@github.com:")
         sh("git config pull.ff only")
 
-def sh(command):
-    logging.debug("Running command %s", command)
-    os.system(command)
+def remount(ext_disk, mount_point,
+            home_directory, user):
+    """Move a partition to a new mount point.
+    Also, optionally make symlinks from the user's home directory to
+    everything in a home-like directory in the partition, and optionally
+    transfer ownership of the link targets to the user."""
+    if ext_disk and os.path.exists(ext_disk) and mount_point:
+        logging.info("Moving %s to mount point %s", ext_disk, mount_point)
+        sh("umount " + ext_disk)
+        append_to_file_if_missing("/etc/fstab",
+                                  ext_disk,
+                                  "%s %s ext4 defaults 0 0\n" % (ext_disk, mount_point))
+        os.makedirs(mount_point, dirmask, True)
+        sh("mount " + ext_disk)
+        if home_directory and os.path.isdir(mount_point):
+            user_dir = os.path.join(mount_point, "home", user)
+            if os.path.isdir(user_dir):
+                logging.info("Linking user files in %s from HDD", user_dir)
+                for filename in glob.glob(user_dir+"/*"):
+                    link = os.path.join(home_directory, os.path.basename(filename))
+                    if not os.path.exists(link):
+                        logging.info("  Linking %s to %s", link, filename)
+                        os.symlink(filename, link)
+                        if user:
+                            sh("chown -R %s:%s %s" % (user, user, filename))
+        else:
+            logging.warn("No directory found at mount point %s", mount_point)
+    else:
+        logging.warn("External disk %s not found", ext_disk)
+
+###############################
+# Getting project collections #
+###############################
+
+def get_user_projects(configuration, home_directory):
+    """Get the user's collection of projects from a network repository.
+This currently assumes github's repo listing API."""
+    # This should be relative to the user's home directory, or
+    # absolute (avoiding any confusion about using $HOME coming from
+    # this program running as root until it changes uid).
+    projects_dir_name = configuration.get('projects-directory')
+    if projects_dir_name:
+        projects_dir = (projects_dir_name
+                        if os.path.isabs(projects_dir_name)
+                        else os.path.join(home_directory, projects_dir_name))
+        os.makedirs(projects_dir, dirmask, True)
+        logging.info("Cloning projects into %s", projects_dir)
+        for repo in requests.get(configuration['github-list']).json():
+            if os.path.isdir(os.path.join(projects_dir, repo['name'])):
+                logging.info("Already got repo %s", repo['name'])
+            else:
+                os.chdir(projects_dir)
+                git_clone(repo['git_url'], configuration['git-target-protocol'])
+
+def get_repos(configuration, home_directory, repos):
+    # This should be relative to the user's home directory, or
+    # absolute (avoiding any confusing about using $HOME coming from
+    # this program running as root until it changes uid).
+    repos_dir_name = configuration.get('repos-directory')
+    repos_directory = (repos_dir_name
+                       if os.path.isabs(repos_dir_name)
+                       else os.path.join(home_directory, repos_dir_name))
+
+    if repos and repos_directory:
+        repos_directory = os.path.expandvars(repos_directory)
+        logging.info("Fetching %s into %s", repos, repos_directory)
+        for repo in repos:
+            site, author, reponame = git_site_author_and_repo(repo)
+            author_directory = os.path.join(repos_directory, site, author)
+            os.makedirs(author_directory, dirmask, True)
+            repodir = os.path.join(author_directory, reponame)
+            if os.path.isdir(repodir):
+                logging.info("updating %s", repo)
+                print("updating", repo)
+                os.chdir(repodir)
+                sh("git pull")
+            else:
+                logging.info("cloning %s under author directory %s", repo, author_directory)
+                print("cloning %s under author directory %s" % (repo, author_directory))
+                os.chdir(author_directory)
+                git_clone(repo, configuration['git-target-protocol'])
 
 ##############
 # Main logic #
@@ -291,102 +405,6 @@ def assemble_configuration(args):
             configuration[k] = v
 
     return configuration
-
-def remount(ext_disk, mount_point,
-            home_directory, user):
-    """Move a partition to a new mount point.
-    Also, optionally make symlinks from the user's home directory to
-    everything in a home-like directory in the partition, and optionally
-    transfer ownership of the link targets to the user."""
-    if ext_disk and os.path.exists(ext_disk) and mount_point:
-        logging.info("Moving %s to mount point %s", ext_disk, mount_point)
-        sh("umount " + ext_disk)
-        append_to_file_if_missing("/etc/fstab",
-                                  ext_disk,
-                                  "%s %s ext4 defaults 0 0\n" % (ext_disk, mount_point))
-        os.makedirs(mount_point, dirmask, True)
-        sh("mount " + ext_disk)
-        if home_directory and os.path.isdir(mount_point):
-            user_dir = os.path.join(mount_point, "home", user)
-            if os.path.isdir(user_dir):
-                logging.info("Linking user files in %s from HDD", user_dir)
-                for filename in glob.glob(user_dir+"/*"):
-                    link = os.path.join(home_directory, os.path.basename(filename))
-                    if not os.path.exists(link):
-                        logging.info("  Linking %s to %s", link, filename)
-                        os.symlink(filename, link)
-                        if user:
-                            sh("chown -R %s:%s %s" % (user, user, filename))
-        else:
-            logging.warn("No directory found at mount point %s", mount_point)
-    else:
-        logging.warn("External disk %s not found", ext_disk)
-
-def get_user_projects(configuration, home_directory):
-    """Get the user's collection of projects from a network repository.
-This currently assumes github's repo listing API."""
-    # This should be relative to the user's home directory, or
-    # absolute (avoiding any confusion about using $HOME coming from
-    # this program running as root until it changes uid).
-    projects_dir_name = configuration.get('projects-directory')
-    if projects_dir_name:
-        projects_dir = (projects_dir_name
-                        if os.path.isabs(projects_dir_name)
-                        else os.path.join(home_directory, projects_dir_name))
-        os.makedirs(projects_dir, dirmask, True)
-        logging.info("Cloning projects into %s", projects_dir)
-        for repo in requests.get(configuration['github-list']).json():
-            if os.path.isdir(os.path.join(projects_dir, repo['name'])):
-                logging.info("Already got repo %s", repo['name'])
-            else:
-                os.chdir(projects_dir)
-                git_clone(repo['git_url'], configuration['git-target-protocol'])
-
-def get_repos(configuration, home_directory, repos):
-    # This should be relative to the user's home directory, or
-    # absolute (avoiding any confusing about using $HOME coming from
-    # this program running as root until it changes uid).
-    repos_dir_name = configuration.get('repos-directory')
-    repos_directory = (repos_dir_name
-                       if os.path.isabs(repos_dir_name)
-                       else os.path.join(home_directory, repos_dir_name))
-
-    if repos and repos_directory:
-        repos_directory = os.path.expandvars(repos_directory)
-        logging.info("Fetching %s into %s", repos, repos_directory)
-        for repo in repos:
-            site, author, reponame = git_site_author_and_repo(repo)
-            author_directory = os.path.join(repos_directory, site, author)
-            os.makedirs(author_directory, dirmask, True)
-            repodir = os.path.join(author_directory, reponame)
-            if os.path.isdir(repodir):
-                logging.info("updating %s", repo)
-                print("updating", repo)
-                os.chdir(repodir)
-                sh("git pull")
-            else:
-                logging.info("cloning %s under author directory %s", repo, author_directory)
-                print("cloning %s under author directory %s" % (repo, author_directory))
-                os.chdir(author_directory)
-                git_clone(repo, configuration['git-target-protocol'])
-
-def install_dotfiles(configuration, home_directory):
-    """Copy the user's dotfiles into place."""
-    repos_dir = configuration.get('repos-directory')
-    dot_files = configuration.get('dot-files')
-    config_project = configuration.get('config-repo')
-    logging.info("dot_files are %s and config_project is %s in the repos_dir %s",
-                 dot_files, config_project, repos_dir)
-    if dot_files and config_project:
-        config_dir = os.path.join(home_directory, repos_dir, config_project)
-        logging.info("config dir is %s", config_dir)
-        for dot_file in dot_files:
-            origin = os.path.join(config_dir, dot_file)
-            logging.debug("considering copying %s", origin)
-            if os.path.isfile(origin):
-                logging.debug("copying %s with a dot, into %s", origin, home_directory)
-                shutil.copy(origin,
-                            os.path.join(home_directory, "." + dot_file))
 
 def apply_root_config(configuration):
     """Apply the part of the config that is done as root (as distinct from as the user)."""
@@ -463,11 +481,11 @@ def apply_user_config(configuration, user, home_directory):
                 if not os.path.isdir(env_dir):
                     logging.info("creating virtual environment %s", env_dir)
                     sh("python3 -m venv " + env_name)
-                print("from", directory, "running", ". %s/bin/activate" % env_name, "which", "exists" if os.path.isfile("%s/bin/activate" % env_name) else "does not exist", "and env_dir is", env_dir, "and activate within that", "exists" if os.path.isfile(os.path.join(env_dir, "bin/activate")) else "does not exist")
-                # sh(". %s/bin/activate; pip3 install %s" % (env_name, " ".join(packages)))
                 sh(". %s/bin/activate; pip3 install %s" % (env_dir, " ".join(packages)))
             else:
-                # if it's not for a specific directory, it will have been done in apply_root_config
+                # if it's not for a specific directory, it will have
+                # been done in apply_root_config, not into a specific
+                # virtual environment:
                 pass
 
     for user_directory in configuration.get('user-directories', []):
@@ -480,20 +498,6 @@ def apply_user_config(configuration, user, home_directory):
     if user:
         print("Now run 'passwd %s' as root and set your initial user password." % user)
         print("Then on your 'home' machine, you may want to do this: ssh-copy-id %s@%s" % (user, socket.gethostname()))
-
-def switch_to_user(user):
-    # Do the rest as the new user
-    if user:
-        udata = pwd.getpwnam(user)
-        uid = udata[2]
-        gid = udata[3]
-        logging.info("Doing rest of setup as user %s (uid %d, gid %d)", user, uid, gid)
-        os.setgid(gid)          # can't do this after the setuid, because of not being root any longer
-        os.setuid(uid)
-        # os.seteuid(uid)
-        # os.setegid(gid)
-    else:
-        logging.info("User not specified, so completing setup as root")
 
 def apply_config(configuration):
     """Apply a configuration dictionary to the current host."""
