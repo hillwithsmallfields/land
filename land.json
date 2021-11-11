@@ -3,90 +3,75 @@
         "dc:a6:32:78:97:ed": {
             "comment": "This will be the new noticeboard computer.",
             "hostname": "shtogu",
-            "host-class": "noticeboard"
-        },
+            "host-class": "noticeboard"},
         "60:a4:4c:31:61:26": {
             "hostname": "isaiah",
             "host-class": "desktop",
             "no-partition-ops": true,
-            "comment": "My main desktop.  Shouldn't need installing from this system, but this file is useful for defining repos to download."
-        },
+            "comment": "My main desktop.  Use 'land' after reinstalling the OS."},
         "10:0b:a9:eb:99:48": {
             "comment": "The laptop covered in conference and project stickers.",
             "hostname": "elijah",
-            "host-class": "personal-laptop"
-        },
+            "host-class": "personal-laptop"},
         "*second-laptop-macaddr*": {
             "comment": "The sticker-free laptop.",
             "hostname": "elisha",
-            "host-class": "personal-laptop"
-        },
+            "host-class": "personal-laptop"},
         "*mycroft-host-macaddr*": {
             "hostname": "shteg",
-            "host-class": "voice-assistant"
-        },
+            "host-class": "voice-assistant"},
         "b8:27:eb:f7:3a:b4": {
             "comment": "This is the old/current noticeboard computer, and will become the garage computer (Pi 2).",
             "hostname": "whortleberry",
-            "host-class": "noticeboard"
-        },
+            "host-class": "noticeboard"},
         "*garage-host-macaddr*": {
             "comment": "Whortleberry will move to this once replaced as the noticeboard computer (Pi 2).",
             "hostname": "whortleberry",
-            "host-class": "charger-assistant"
-        },
+            "host-class": "charger-assistant"},
         "b8:27:eb:b1:85:7a": {
             "hostname": "fragaria",
             "comment": "workbench machine for experiments (Pi 3); for now using the noticeboard configuration while I develop the noticeboard auxiliary hardware.",
-            "host-class": "noticeboard"
-        }
-    },
+            "host-class": "noticeboard"}},
 
     "host-classes": {
         "charger-assistant": {
             "comment": "Combines organizational assistant with monitoring batteries on float charge.",
             "superclasses": ["assistant", "assistant-pi", "raspberry pi"],
-            "git-repos": ["git@github.com:hillwithsmallfields/LRembedded.git"]
-        },
+            "git-repos": ["git@github.com:hillwithsmallfields/LRembedded.git"]},
         "voice-assistant": {
             "comment": "My usual organizational assistant, plus Mycroft.ai.",
             "superclasses": ["assistant", "assistant-pi", "raspberry pi"],
-            "TODO": "load mycroft stuff here"
-        },
+            "TODO": "load mycroft stuff here"},
         "noticeboard": {
             "comment": "My main organizational assistant: a noticeboard with a screen embedded in it.",
             "superclasses": ["assistant", "assistant-pi", "raspberry pi"],
             "apt-install": [
-                "motion"
-            ]
-        },
+                "motion"]},
         "desktop": {
             "superclasses": [
 		"assistant",
-		"emacs",
 		"development",
+		"emacs",
+		"general",
 		"learning",
 		"making",
-		"general",
 		"music",
 		"utilities",
-		"myself"]
-        },
+		"myself"],
+	    "root-actions": [
+		"systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target"]},
         "personal-laptop": {
             "superclasses": [
-		"myself",
-		"general",
+		"assistant",
 		"development",
+		"general",
 		"making",
 		"music",
-		"assistant"]
-        },
+		"myself"]},
         "assistant-pi": {
             "pip-remove": [
                 "numpy",
-                "pandas"
-            ]
-	},
+                "pandas"]},
         "assistant": {
             "comment": "My main personal organizing and Quantified Self system.  I couldn't get orq-ql to install the proper way so I fetched all that lot as repositories.",
             "superclasses": ["emacs", "myself"],
@@ -107,13 +92,12 @@
             "explanation": "We need to remove the pre-installed versions of numpy and pandas so we can replace them with the ones from apt.",
             "In progress": "install throw_out_your_templates_p3 (it is in makers.git) and make it accessible from qs/dashboard/dashboard.py",
             "apt-install": [
+                "festival",
                 "inotify-tools",
                 "libatlas-base-dev",
                 "python3-numpy",
                 "python3-pandas",
-                "festival",
-                "syncthing"
-            ],
+                "syncthing"],
             "pip-install": [
                 "measurement",
                 "ordered_set",
@@ -138,9 +122,7 @@
                 "common/org",
                 "common/org/archive",
                 "common/travel",
-                "common-backups"
-            ]
-        },
+                "common-backups"]},
         "emacs": {
             "superclasses": ["visual"],
             "apt-install": ["emacs"],
@@ -149,40 +131,31 @@
                 "git@github.com:hillwithsmallfields/JCGS-emacs.git",
                 "git@github.com:hillwithsmallfields/JCGS-emacs-versor.git",
                 "git@github.com:hillwithsmallfields/JCGS-org-mode.git",
-                "git@github.com:hillwithsmallfields/JCGS-config.git"]
-        },
+                "git@github.com:hillwithsmallfields/JCGS-config.git"]},
         "general": {
             "apt-install": [
-                "pandoc",
-		"keepass2",
 		"gdb",
+		"keepass2",
 		"texlive",
-		"ratpoison"
-            ]
-        },
+                "pandoc",
+		"ratpoison"]},
         "visual": {
             "dot-files": [
-                "xinitrc"
-            ]
-        },
+                "xinitrc"]},
         "raspberry pi": {
             "mounts": {
                 "/dev/sda1": {
                     "mount-point": "/mnt/hdd0",
                     "link-to-home": true,
-                    "take-ownership": true}
-            },
-            "suppress-auto-login": true
-        },
+                    "take-ownership": true}},
+            "suppress-auto-login": true},
 	"learning": {
 	    "superclasses": [
 		"learning-proglang",
 		"learning-machine-learning",
 		"learning-webstuff"],
 	    "apt-install": [
-		"jupyter"
-	    ]
-	},
+		"jupyter"]},
 	"learning-proglang": {
 	    "apt-install": [
 		"clojure", "elpa-cider", "leiningen",
@@ -206,15 +179,11 @@
 		"scala",
 		"swiprolog",
 		"ts-node",
-		"yforth"
-	    ]
-	},
+		"yforth"]},
 	"learning-webstuff": {
 	    "apt-install": [
 		"ruby-rails",
-		"python-flask"
-	    ]
-	},
+		"python-flask"]},
 	"learning-machine-learning": {
 	    "apt-install": [
 		"python3-keras",
@@ -222,29 +191,20 @@
 		"python3-sklearn",
 		"python3-torch",
                 "python3-numpy",
-                "python3-pandas"
-	    ],
+                "python3-pandas"],
 	    "pip-install": [
-		"tensorflow"
-	    ]
-	},
+		"tensorflow"]},
 	"proglang": {
 	    "apt-install": [
-		"gcl"
-	    ]
-	},
+		"gcl"]},
 	"making": {
 	    "apt-install": [
-		"openscad"
-		]
-	},
+		"openscad"]},
 	"music": {
 	    "apt-install": [
 		"lilypond",
 		"music123",
-		"vorbis-tools"
-	    ]
-	},
+		"vorbis-tools"]},
         "development": {
             "comment": "Machines which I use interactively for development.",
             "superclasses": ["emacs", "proglang"],
@@ -280,18 +240,15 @@
 		"libxft-dev",
 		"libxml2-dev",
 		"libxpm-dev",
-		"make"
-	    ],
+		"make"],
             "git-repos": ["git@github.com:rust-lang/rust-mode.git"],
             "projects-directory": "open-projects/github.com/hillwithsmallfields",
-            "github-list": "https://api.github.com/users/hillwithsmallfields/repos"
-        },
+            "github-list": "https://api.github.com/users/hillwithsmallfields/repos"},
         "myself": {
             "comment": "My personal stuff, as in related to me as a person.",
             "user": "jcgs",
             "name": "John Sturdy",
-            "dot-files": ["signature"]
-        },
+            "dot-files": ["signature"]},
         "global": {
             "dot-files": [
                 "bashrc",
@@ -300,8 +257,4 @@
             "git-target-protocol": "https",
             "config-repo": "github.com/hillwithsmallfields/JCGS-config",
             "git-repos": ["git@github.com:hillwithsmallfields/JCGS-scripts.git",
-                          "git@github.com:hillwithsmallfields/JCGS-config.git"]
-        }
-    }
-
-}
+                          "git@github.com:hillwithsmallfields/JCGS-config.git"]}}}
