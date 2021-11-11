@@ -45,26 +45,50 @@
     "host-classes": {
         "charger-assistant": {
             "comment": "Combines organizational assistant with monitoring batteries on float charge.",
-            "superclasses": ["assistant", "raspberry pi"],
+            "superclasses": ["assistant", "assistant-pi", "raspberry pi"],
             "git-repos": ["git@github.com:hillwithsmallfields/LRembedded.git"]
         },
         "voice-assistant": {
             "comment": "My usual organizational assistant, plus Mycroft.ai.",
-            "superclasses": ["assistant", "raspberry pi"],
+            "superclasses": ["assistant", "assistant-pi", "raspberry pi"],
             "TODO": "load mycroft stuff here"
         },
         "noticeboard": {
             "comment": "My main organizational assistant: a noticeboard with a screen embedded in it.",
-            "superclasses": ["assistant", "raspberry pi"],
+            "superclasses": ["assistant", "assistant-pi", "raspberry pi"],
             "apt-install": [
                 "motion"
             ]
         },
-        "personal-laptop": {
-            "superclasses": ["myself", "development"]
+        "desktop": {
+            "superclasses": [
+		"assistant",
+		"emacs",
+		"development",
+		"learning",
+		"making",
+		"general",
+		"music",
+		"utilities",
+		"myself"]
         },
+        "personal-laptop": {
+            "superclasses": [
+		"myself",
+		"general",
+		"development",
+		"making",
+		"music",
+		"assistant"]
+        },
+        "assistant-pi": {
+            "pip-remove": [
+                "numpy",
+                "pandas"
+            ]
+	},
         "assistant": {
-            "comment": "My main personal organizing and Quantified Self system.  I couldn't get orq-ql to install the proper way.",
+            "comment": "My main personal organizing and Quantified Self system.  I couldn't get orq-ql to install the proper way so I fetched all that lot as repositories.",
             "superclasses": ["emacs", "myself"],
             "git-repos": ["git@github.com:hillwithsmallfields/noticeboard.git",
                           "git@github.com:hillwithsmallfields/qs.git",
@@ -82,10 +106,6 @@
                           "git@github.com:emacsorphanage/ov.git"],
             "explanation": "We need to remove the pre-installed versions of numpy and pandas so we can replace them with the ones from apt.",
             "In progress": "install throw_out_your_templates_p3 (it is in makers.git) and make it accessible from qs/dashboard/dashboard.py",
-            "pip-remove": [
-                "numpy",
-                "pandas"
-            ],
             "apt-install": [
                 "inotify-tools",
                 "libatlas-base-dev",
@@ -131,6 +151,15 @@
                 "git@github.com:hillwithsmallfields/JCGS-org-mode.git",
                 "git@github.com:hillwithsmallfields/JCGS-config.git"]
         },
+        "general": {
+            "apt-install": [
+                "pandoc",
+		"keepass2",
+		"gdb",
+		"texlive",
+		"ratpoison"
+            ]
+        },
         "visual": {
             "dot-files": [
                 "xinitrc"
@@ -145,15 +174,117 @@
             },
             "suppress-auto-login": true
         },
+	"learning": {
+	    "superclasses": [
+		"learning-proglang",
+		"learning-machine-learning",
+		"learning-webstuff"],
+	    "apt-install": [
+		"jupyter"
+	    ]
+	},
+	"learning-proglang": {
+	    "apt-install": [
+		"clojure", "elpa-cider", "leiningen",
+		"coffeescript",
+		"elixir",
+		"erlang",
+		"ghc", "hugs",
+		"gnu-smalltalk",
+		"gprolog",
+		"groovy",
+		"julia",
+		"libslang2-dev",
+		"lua5.4",
+		"nodejs",
+		"octave",
+		"picolisp",
+		"r-base",
+		"racket",
+		"ruby",
+		"rustc",
+		"scala",
+		"swiprolog",
+		"ts-node",
+		"yforth"
+	    ]
+	},
+	"learning-webstuff": {
+	    "apt-install": [
+		"ruby-rails",
+		"python-flask"
+	    ]
+	},
+	"learning-machine-learning": {
+	    "apt-install": [
+		"python3-keras",
+		"python3-onnx",
+		"python3-sklearn",
+		"python3-torch",
+                "python3-numpy",
+                "python3-pandas"
+	    ],
+	    "pip-install": [
+		"tensorflow"
+	    ]
+	},
+	"proglang": {
+	    "apt-install": [
+		"gcl"
+	    ]
+	},
+	"making": {
+	    "apt-install": [
+		"openscad"
+		]
+	},
+	"music": {
+	    "apt-install": [
+		"lilypond",
+		"music123",
+		"vorbis-tools"
+	    ]
+	},
         "development": {
             "comment": "Machines which I use interactively for development.",
-            "superclasses": ["emacs"],
+            "superclasses": ["emacs", "proglang"],
+	    "apt-install": [
+		"build-essential",
+		"gettext",
+		"git",
+		"gnuplot",
+		"libbz2-dev",
+		"libcairo2-dev",
+		"libdjvulibre-dev",
+		"libfftw3-dev",
+		"libgconf2-dev",
+		"libgd-dev",
+		"libgif-dev",
+		"libgnutls28-dev",
+		"libgpm-dev",
+		"libgs-dev",
+		"libgtk-3-dev",
+		"libjansson-dev",
+		"libjpeg-dev",
+		"liblcms2-dev",
+		"libldtl-dev",
+		"libncurses-dev",
+		"libopenjp2-7-dev",
+		"libotf-dev",
+		"librsvg2-dev",
+		"libtiff-dev",
+		"libtiff5-dev",
+		"libwebp-dev",
+		"libwmf-dev",
+		"libx11-dev",
+		"libxft-dev",
+		"libxml2-dev",
+		"libxpm-dev",
+		"make"
+	    ],
             "git-repos": ["git@github.com:rust-lang/rust-mode.git"],
             "projects-directory": "open-projects/github.com/hillwithsmallfields",
             "github-list": "https://api.github.com/users/hillwithsmallfields/repos"
-        },
-        "desktop": {
-            "superclasses": ["assistant", "emacs", "development", "myself"]
         },
         "myself": {
             "comment": "My personal stuff, as in related to me as a person.",
