@@ -22,9 +22,9 @@ import sys
 import time
 import uuid
 
-#################
-# File handling #
-#################
+##########################
+# File and text handling #
+##########################
 
 dirmask = 0o755
 
@@ -190,14 +190,17 @@ def set_hostname(newname):
 def add_user(user, name, hostname):
     """Add the user (if not already present), with their password
     disabled but ssh login allowed.
-    Also put them in /etc/sudoers, and add them to the GPIO group."""
+    Also put them in /etc/sudoers, and add them to the GPIO group.
+    Return the user id, and whether their entry was newly created."""
+    added = False
     if user and user == "":
         logging.warn("No user specified to add_user")
-        return None
+        return None, added
     try:
         _ = pwd.getpwnam(user)
     except KeyError:
         sh('adduser --disabled-password --gecos "%s" %s' % (name, user))
+        added = True
         print("run 'sudo passwd %s' to set your password" % user)
         print("then on desktop, do this: ssh-copy-id %s@%s" % (user, hostname))
 
@@ -211,7 +214,7 @@ def add_user(user, name, hostname):
                              "gpio",
                              "," + user)
 
-    return user
+    return user, added
 
 def switch_to_user(user):
     # Do the rest as the new user
@@ -437,7 +440,7 @@ def apply_root_config(configuration):
                 # if it's for a specific directory, it will be done in apply_user_config
                 pass
 
-    user = add_user(configuration.get('user'),
+    user, user_is_new = add_user(configuration.get('user'),
                     configuration.get('name'),
                     hostname)
     home_directory = (pwd.getpwnam(user)[5]
@@ -459,9 +462,9 @@ def apply_root_config(configuration):
     for root_action in configuration.get('root-actions', []):
         sh(root_action)
 
-    return user, home_directory
+    return user, user_is_new, home_directory
 
-def apply_user_config(configuration, user, home_directory):
+def apply_user_config(configuration, user, user_is_new, home_directory):
     """Apply the part of the config that is done as the user (as distinct from as root)."""
     get_user_projects(configuration, home_directory)
     get_repos(configuration, home_directory, configuration.get('git-repos'))
@@ -495,16 +498,16 @@ def apply_user_config(configuration, user, home_directory):
         logging.info("Running user action %s", user_action)
         sh(user_action)
 
-    if user:
+    if user and user_is_new:
         print("Now run 'passwd %s' as root and set your initial user password." % user)
         print("Then on your 'home' machine, you may want to do this: ssh-copy-id %s@%s" % (user, socket.gethostname()))
 
 def apply_config(configuration):
     """Apply a configuration dictionary to the current host."""
 
-    user, home_directory = apply_root_config(configuration)
+    user, user_is_new, home_directory = apply_root_config(configuration)
     switch_to_user(user)
-    apply_user_config(configuration, user, home_directory)
+    apply_user_config(configuration, user, user_is_new, home_directory)
 
 ################
 # Main program #
@@ -523,8 +526,8 @@ def main():
                         help="""The name to give the host.""")
     parser.add_argument("--config",
                         default="https://raw.githubusercontent.com/hillwithsmallfields/land/trunk/land.json",
-                        help="""Filename or URL () overriding built-in settings.
-                        Command line --user, --name, and --host override this file.
+                        help="""Filename or URL overriding built-in settings.
+                        Command line --user, --name, and --host override entries in this file.
                         If the string has % in it, named %-substitution is done,
                         with a dictionary binding 'origin-hostname', 'model', 'mac-addr',
                         and 'serial'.""")
