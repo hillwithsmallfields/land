@@ -3,11 +3,14 @@ Scripts for landing on a new host.
 
 Originally aimed at setting up a Raspberry Pi after I have overwritten
 its SD card with a new Raspbian; but it is more general and should be
-usable on any Linux or similar system.
+usable on any Debian-family system, or with a little further work on
+other Linux or similar systems.
 
-Configurable using JSON, so the command lines don't get out of hand.
+Configurable using JSON, so the command lines don't get out of hand
+(YAML isn't available at the time the program starts, on a Pi).
 
-Also includes an Arduino sketch for autotyping the commands to do the setup (for Arduino Micro and the keyboard library).
+Also includes an Arduino sketch (not yet complete) for autotyping the
+commands to do the setup (for Arduino Micro and the keyboard library).
 
 The configuration file
 ======================
@@ -58,7 +61,7 @@ The values in this section are dictionaries which can bind:
   - pip-install --- a list of packages to fetch with pip3
   - pip-remove --- a list of packages to remove with pip3 (so you can re-install them with apt)
   - git-repos --- a list of clone URLs to use
-  - dot-files --- a list of files to copy from your designated config repo
+  - dot-files --- a list of files to copy from your designated config repo; the names in the repo need not have the initial dot
   - mounts --- a dictionary binding partition names to dictionaries defining:
   - - mount-point --- where in the filesystem to mount the ext-drive
   - - link-to-home
