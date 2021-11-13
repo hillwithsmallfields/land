@@ -12,10 +12,12 @@
         "10:0b:a9:eb:99:48": {
             "comment": "The laptop covered in conference and project stickers.",
             "hostname": "elijah",
+            "no-partition-ops": true,
             "host-class": "personal-laptop"},
         "*second-laptop-macaddr*": {
             "comment": "The sticker-free laptop.",
             "hostname": "elisha",
+            "no-partition-ops": true,
             "host-class": "personal-laptop"},
         "*mycroft-host-macaddr*": {
             "hostname": "shteg",
@@ -100,6 +102,7 @@
                 "syncthing"],
             "pip-install": {
                 "open-projects/github.com/hillwithsmallfields/noticeboard": [
+                    "keyring",
                     "measurement",
                     "ordered_set",
                     "oura",
@@ -207,7 +210,10 @@
                 "common/learning/tensorflow": [
 		    "tensorflow"],
                 "common/learning/pytorch": [
-                    "torch==1.10.0+cpu torchvision==0.11.1+cpu torchaudio==0.10.0+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html"]}},
+                    "torch==1.10.0+cpu torchvision==0.11.1+cpu torchaudio==0.10.0+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html",
+                    "torchvision",
+                    "torchtext",
+                    "torchaudio"]}},
 	"proglang": {
 	    "apt-install": [
 		"gcl"]},
