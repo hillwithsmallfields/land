@@ -20,6 +20,7 @@ import shutil
 import socket
 import sys
 import time
+import urllib.request
 import uuid
 
 ##########################
@@ -327,6 +328,10 @@ def remount(ext_disk, mount_point,
     else:
         logging.warn("External disk %s not found", ext_disk)
 
+def fetch_page(url, filename):
+    """Fetch a file from the web."""
+    urllib.request.urlretrieve(url, filename)
+
 ###############################
 # Getting project collections #
 ###############################
@@ -448,6 +453,10 @@ def apply_root_config(configuration):
         logging.info("Uninstalling these packages using pip: %s", ", ".join(configuration['pip-remove']))
         for package in configuration['pip-remove']:
             sh("pip3 uninstall %s" % package)
+    if 'web' in configuration:
+        for url, dest_file in configuration['web']:
+            if os.path.isabs(dest_file):
+                fetch_page(url, dest_file)
     if 'apt-install' in configuration:
         logging.info("Installing these packages using apt: %s", ", ".join(configuration['apt-install']))
         for package in configuration['apt-install']:
@@ -490,6 +499,10 @@ def apply_user_config(configuration, user, user_is_new, home_directory):
     """Apply the part of the config that is done as the user (as distinct from as root)."""
     get_user_projects(configuration, home_directory)
     get_repos(configuration, home_directory, configuration.get('git-repos'))
+    if 'web' in configuration:
+        for url, dest_file in configuration['web']:
+            if not os.path.isabs(dest_file):
+                fetch_page(url, os.path.join(home_directory, dest_file))
     install_dotfiles(configuration, home_directory)
 
     if 'pip-install' in configuration:
