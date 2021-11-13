@@ -269,7 +269,10 @@ def install_dotfiles(configuration, home_directory):
             if os.path.isfile(origin):
                 logging.debug("copying %s with a dot, into %s", origin, home_directory)
                 shutil.copy(origin,
-                            os.path.join(home_directory, "." + dot_file))
+                            os.path.join(home_directory,
+                                         (dot_file
+                                          if dot_file.startswith(".")
+                                          else ("." + dot_file))))
 
 ###########
 # Actions #
