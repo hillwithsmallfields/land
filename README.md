@@ -20,6 +20,9 @@ There are two sections to the config file:
   - hosts
   - host-classes
   
+Keys not documented here will be ignored, so you can add "comment" and
+"todo" text, for example.
+  
 hosts
 -----
 
@@ -32,8 +35,9 @@ a serial number.
 
 The values in this section should be dictionaries binding:
 
-  - hostname
-  - host-class --- looked up in the "host-classes" section.
+  - hostname --- set the hostname to this
+  - host-class --- looked up in the "host-classes" section
+  - no-partition-ops --- don't do any partition-related operations
 
 host-classes
 ------------
@@ -68,4 +72,4 @@ The values in this section are dictionaries which can bind:
   - user-actions --- shell commands to do at the end
   - system-directories --- directories to make as root, should be absolute
   - user-directories --- directories to make as the user, relative to the user's home directory
-
+  - web --- a dictionary binding URLs to fetch to the filenames to store them in, where relative filenames are take relative to the user's home directory
