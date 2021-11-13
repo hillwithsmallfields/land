@@ -114,6 +114,28 @@ def file_contents(filename):
             return filestream.read()
     return None
 
+def get_partitions_usage():
+    """Return a dictionary mapping mount points to tuples of (total, used, free)."""
+    with open("/proc/mounts") as mounts:
+        return {partition: shutil.disk_usage(partition)
+                for partition in (mount.split(" ", 2)[1]
+                                  for mount in mounts
+                                  if mount.startswith("/dev/"))}
+
+def get_partitions_used():
+    """Return a dictionary mapping mount points to bytes used."""
+    return {partition: usage[1] for partition, usage in get_disk_usage().items()}
+
+def get_partitions_free():
+    """Return a dictionary mapping mount points to bytes free."""
+    return {partition: usage[2] for partition, usage in get_disk_usage().items()}
+
+def compare_partitions_used(old, new):
+    """Compare two dictionaries of bytes used per partition."""
+    return {partition: used - old[partition]
+            for partition, used in new.items()
+            if used != old[partition]}
+
 ##########################
 # Configuration handling #
 ##########################
@@ -564,10 +586,16 @@ def main():
     if args.dry_run:
         print("Assembled configuration", json.dumps(config, indent=4))
     else:
+        partitions_bytes_used = get_partitions_used()
         if args.user_only:
             apply_user_config(config, getpass.getuser(), os.path.expanduser("~"))
         else:
             apply_config(config)
+        installation_sizes = compare_partitions_used(partitions_bytes_used, get_partitions_used())
+        print("The installation used this amount of space:")
+        for part in sorted(installation_sizes.values()):
+            logging.info("The installation used %d bytes on partition %s", installation_sizes[part], part)
+            print(part, installation_sizes[part])
 
     logging.info("Setup took", time.time() - start_time, "seconds.")
 
