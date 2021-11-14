@@ -120,13 +120,15 @@
                 "public_html",
                 "org",
                 "archive",
-                "common/var",
-                "common/health",
-                "common/finances",
-                "common/org",
-                "common/org/archive",
-                "common/travel",
-                "common-backups"]},
+                "Sync/var",
+                "Sync/health",
+                "Sync/finances",
+                "Sync/org",
+                "Sync/org/archive",
+                "Sync/learning/tensorflow",
+                "Sync/learning/pytorch",
+                "Sync/travel",
+                "Sync-backups"]},
         "emacs": {
             "superclasses": ["visual"],
             "apt-install": ["emacs"],
@@ -207,9 +209,9 @@
                 "python3-pandas"],
             "comment": "pytorch install instructions are from https://pytorch.org/get-started/locally/",
 	    "pip-install": {
-                "common/learning/tensorflow": [
+                "Sync/learning/tensorflow": [
 		    "tensorflow"],
-                "common/learning/pytorch": [
+                "Sync/learning/pytorch": [
                     "torch==1.10.0+cpu torchvision==0.11.1+cpu torchaudio==0.10.0+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html",
                     "torchvision",
                     "torchtext",
