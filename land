@@ -125,11 +125,11 @@ def get_partitions_usage():
 
 def get_partitions_used():
     """Return a dictionary mapping mount points to bytes used."""
-    return {partition: usage[1] for partition, usage in get_disk_usage().items()}
+    return {partition: usage[1] for partition, usage in get_partitions_usage().items()}
 
 def get_partitions_free():
     """Return a dictionary mapping mount points to bytes free."""
-    return {partition: usage[2] for partition, usage in get_disk_usage().items()}
+    return {partition: usage[2] for partition, usage in get_partitions_usage().items()}
 
 def compare_partitions_used(old, new):
     """Compare two dictionaries of bytes used per partition."""
