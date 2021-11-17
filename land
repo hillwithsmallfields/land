@@ -142,7 +142,7 @@ def compare_partitions_used(old, new):
 ##########################
 
 def merge(old, new):
-    """Merge two configurations."""
+    """Merge two configurations recursively."""
     for k, v in new.items():
         if k in old:
             if isinstance(old[k], list):
@@ -202,6 +202,7 @@ def set_hostname(newname):
     """Set this machine's hostname."""
     oldname = socket.gethostname()
     if newname != oldname:
+        logging.debug("Changing hostname from %s to %s", oldname, newname)
         with open("/etc/hostname", 'w') as namestream:
             namestream.write(newname + '\n')
         with open("/etc/hosts", 'r') as hoststream:
@@ -221,7 +222,9 @@ def add_user(user, name, hostname):
         return None, added
     try:
         _ = pwd.getpwnam(user)
+        logging.debug("User %s already exists", user)
     except KeyError:
+        logging.debug("Adding user %s", user)
         sh('adduser --disabled-password --gecos "%s" %s' % (name, user))
         added = True
         print("run 'sudo passwd %s' to set your password" % user)
@@ -240,7 +243,8 @@ def add_user(user, name, hostname):
     return user, added
 
 def switch_to_user(user):
-    # Do the rest as the new user
+    """Switch from running as root to running as the specified user."""
+    logging.debug("Switching from running as root to running as %s", user)
     if user:
         udata = pwd.getpwnam(user)
         uid = udata[2]
@@ -248,13 +252,11 @@ def switch_to_user(user):
         logging.info("Doing rest of setup as user %s (uid %d, gid %d)", user, uid, gid)
         os.setgid(gid)          # can't do this after the setuid, because of not being root any longer
         os.setuid(uid)
-        # os.seteuid(uid)
-        # os.setegid(gid)
     else:
         logging.info("User not specified, so completing setup as root")
 
 def install_dotfiles(configuration, home_directory):
-    """Copy the user's dotfiles into place."""
+    """Copy the user's dotfiles into place, prepending dots to the names if needed."""
     repos_dir = configuration.get('repos-directory')
     dot_files = configuration.get('dot-files')
     config_project = configuration.get('config-repo')
@@ -306,7 +308,14 @@ def remount(ext_disk, mount_point,
     """Move a partition to a new mount point.
     Also, optionally make symlinks from the user's home directory to
     everything in a home-like directory in the partition, and optionally
-    transfer ownership of the link targets to the user."""
+    transfer ownership of the link targets to the user.
+
+    This is meant as an alternative to putting the user's home directory
+    onto the possibly removable external drive, so at least they can log
+    in when it is not present.  Could possibly be replaced by having a
+    user directory in the mount point for when the external drive isn't
+    mounted, but then the mounted filesystem would have to be just the
+    user's home directory."""
     if ext_disk and os.path.exists(ext_disk) and mount_point:
         logging.info("Moving %s to mount point %s", ext_disk, mount_point)
         sh("umount " + ext_disk)
@@ -419,15 +428,17 @@ def assemble_configuration(args):
     host_classes = all_configuration.get('host-classes', {})
     configuration = {}
 
+    activate('global', host_classes, configuration, host_classes)
     # Try various forms of host identity; possibly one of them will
     # yield a host-class, and may also give us a hostname:
-    activate('global', host_classes, configuration, host_classes)
-    activate(description['original-hostname'], host_descriptions, configuration, host_classes)
-    activate(description['mac-addr'], host_descriptions, configuration, host_classes)
-    activate(description['serial'], host_descriptions, configuration, host_classes)
+    for aspect in ('original-hostname', 'mac-addr', 'serial'):
+        activate(description[aspect], host_descriptions, configuration, host_classes)
+        if 'host-class' in description:
+            break
     # There may be some information specific to an individual host,
     # but by name rather than MAC address or serial number:
-    activate(configuration['hostname'], host_descriptions, configuration, host_classes)
+    if 'hostname' in configuration:
+        activate(configuration['hostname'], host_descriptions, configuration, host_classes)
     # If we're going to get a host class, we will have got it by now:
     activate(configuration.get('host-class'), host_classes, configuration, host_classes)
     activate(description.get('host-class'), host_classes, configuration, host_classes)
@@ -459,6 +470,7 @@ def apply_root_config(configuration):
     if 'web' in configuration:
         for url, dest_file in configuration['web']:
             if os.path.isabs(dest_file):
+                logging.info("Fetching file %s from the web and writing it to %s", url, dest_file)
                 fetch_page(url, dest_file)
     if 'apt-install' in configuration:
         logging.info("Installing these packages using apt: %s", ", ".join(configuration['apt-install']))
@@ -483,17 +495,22 @@ def apply_root_config(configuration):
 
     if not configuration.get('no-partition-ops', False):
         for ext_disk, mount_description in configuration.get('mounts', {}).items():
+            logging.info("Remounting %s as %s", ext_disk, mount_description)
             remount(ext_disk,
                     mount_description['mount-point'],
                     mount_description['link-to-home'] and home_directory,
                     mount_description['take-ownership'] and user)
 
     if configuration.get('suppress-auto-login', False):
+        # So that a Raspberry Pi won't come up logged in when booted
+        logging.info("Suppressing auto-login")
         prepend_to_lines_starting("/etc/lightdm/lightdm.conf", "autologin-user", "# ")
 
     for system_directory in configuration.get('system-directories', []):
+        logging.info("Making system directory %s", system_directory)
         os.makedirs(system_directory, dirmask, True)
     for root_action in configuration.get('root-actions', []):
+        logging.info("Running action '%s' as root")
         sh(root_action)
 
     return user, user_is_new, home_directory
@@ -505,29 +522,32 @@ def apply_user_config(configuration, user, user_is_new, home_directory):
     if 'web' in configuration:
         for url, dest_file in configuration['web']:
             if not os.path.isabs(dest_file):
+                logging.info("Fetching %s from the web and saving it as user file %s", url, dest_file)
                 fetch_page(url, os.path.join(home_directory, dest_file))
     install_dotfiles(configuration, home_directory)
 
     if 'pip-install' in configuration:
         logging.info("Installing these packages into virtual environments using pip: %s", ", ".join(configuration['pip-install']))
         for directory, packages in configuration['pip-install'].items():
+            # installs without a specified directory will have been
+            # done as global installs, while we were still running as root:
             if directory is not None and directory != 'None':
                 if not os.path.isabs(directory):
                     directory = os.path.join(home_directory, directory)
                 if not os.path.isdir(directory):
                     os.makedirs(directory, dirmask, True)
                 os.chdir(directory)
+                logging.info("In directory %s, installing packages %s", directory, packages)
+                print("In directory %s, installing packages %s" % (directory, packages))
                 env_name = "env"
                 env_dir = os.path.join(directory, env_name)
                 if not os.path.isdir(env_dir):
                     logging.info("creating virtual environment %s", env_dir)
                     sh("python3 -m venv " + env_name)
+                logging.debug("Running: '. %s/bin/activate; pip3 install %s' in directory %s", env_dir, packages, directory)
+                print("Running: '. %s/bin/activate; pip3 install %s' in directory %s" % (env_dir, packages, directory))
                 sh(". %s/bin/activate; pip3 install %s" % (env_dir, " ".join(packages)))
-            else:
-                # if it's not for a specific directory, it will have
-                # been done in apply_root_config, not into a specific
-                # virtual environment:
-                pass
+                logging.debug("Completed pip3 install")
 
     for user_directory in configuration.get('user-directories', []):
         logging.info("Creating user directory %s", user_directory)
@@ -608,9 +628,9 @@ def main():
         else:
             apply_config(config)
         installation_sizes = compare_partitions_used(partitions_bytes_used, get_partitions_used())
-        print("The installation used this amount of space:")
-        for part in sorted(installation_sizes.values()):
-            logging.info("The installation used %d bytes on partition %s", installation_sizes[part], part)
+        print("This amount of space was consumed during the installation:")
+        for part in sorted(installation_sizes.keys()):
+            logging.info("%d bytes (%dKb, %dMb) on partition %s", installation_sizes[part], installation_sizes[part]/1024, installation_sizes[part]/(1024*1024), part)
             print(part, installation_sizes[part])
 
     logging.info("Setup took", time.time() - start_time, "seconds.")
