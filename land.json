@@ -102,33 +102,35 @@
                 "syncthing"],
             "pip-install": {
                 "open-projects/github.com/hillwithsmallfields/noticeboard": [
+                    "Crypto",
+                    "cssutils",
+                    "lxml",
+                    "python-decouple",
                     "keyring",
+                    "matplotlib",
                     "measurement",
                     "ordered_set",
                     "oura",
                     "overpass2",
                     "pycrypto",
                     "pyowm",
-                    "python-decouple",
                     "pyyaml",
                     "sexpdata",
-                    "cssutils",
-                    "talkey",
-                    "yaml"]},
+                    "typing_extensions",
+                    "talkey"]},
             "user-directories": [
                 "private_html",
                 "public_html",
                 "org",
                 "archive",
                 "Sync/var",
+                "isos",
                 "Sync/health",
                 "Sync/finances",
                 "Sync/org",
                 "Sync/org/archive",
-                "Sync/learning/tensorflow",
-                "Sync/learning/pytorch",
                 "Sync/travel",
-                "Sync-backups"]},
+                "Sync-snapshots"]},
         "emacs": {
             "superclasses": ["visual"],
             "apt-install": ["emacs"],
@@ -189,7 +191,10 @@
 		"scala",
 		"swiprolog",
 		"ts-node",
-		"yforth"]},
+		"yforth"],
+            "user-directories": [
+                "Sync/learning/rust",
+                "Sync/learning/haskell"]},
         "learning-systems": {
             "apt-install": [
                 "memcached",
@@ -207,6 +212,9 @@
 		"python3-torch",
                 "python3-numpy",
                 "python3-pandas"],
+            "user-directories": [
+                "Sync/learning/tensorflow",
+                "Sync/learning/pytorch"],
             "comment": "pytorch install instructions are from https://pytorch.org/get-started/locally/",
 	    "pip-install": {
                 "Sync/learning/tensorflow": [
