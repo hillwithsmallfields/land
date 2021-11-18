@@ -509,8 +509,9 @@ def apply_root_config(configuration):
     for system_directory in configuration.get('system-directories', []):
         logging.info("Making system directory %s", system_directory)
         os.makedirs(system_directory, dirmask, True)
-    for root_action in configuration.get('root-actions', []):
-        logging.info("Running action '%s' as root")
+    for directory, root_action in configuration.get('root-actions', {}).items():
+        logging.info("Running action '%s' as root, in directory %s", root_action, directory)
+        os.chdir(directory)
         sh(root_action)
 
     return user, user_is_new, home_directory
@@ -552,8 +553,9 @@ def apply_user_config(configuration, user, user_is_new, home_directory):
     for user_directory in configuration.get('user-directories', []):
         logging.info("Creating user directory %s", user_directory)
         os.makedirs(os.path.join(home_directory, user_directory), dirmask, True)
-    for user_action in configuration.get('user-actions', []):
-        logging.info("Running user action %s", user_action)
+    for user_action, directory in configuration.get('user-actions', {}).items():
+        logging.info("Running user action '%s' in directory %s", user_action, directory)
+        os.chdir(directory)
         sh(user_action)
 
     if user and user_is_new:
