@@ -61,18 +61,18 @@ The values in this section are dictionaries which can bind:
   - pip-install --- a list of packages to fetch with pip3
   - pip-remove --- a list of packages to remove with pip3 (so you can re-install them with apt)
   - git-repos --- a list of clone URLs to use
-  - dot-files --- a list of files to copy from your designated config repo; the names in the repo need not have the initial dot
+  - dot-files --- a list of files to copy from your designated config-repo; the names in the repo need not have the initial dot
   - mounts --- a dictionary binding partition names to dictionaries defining:
   - - mount-point --- where in the filesystem to mount the ext-drive
-  - - link-to-home
+  - - link-to-home --- if given, a directory to symlink each directory entry in the mount-point into
   - - take-ownership --- a flag saying to chown everything below mount-point once mounted
   - user --- your user-id
   - name --- your long name
   - projects-directory --- a directory to clone the github-list projects into
   - github-list --- the URL into github's user repo listing API
   - config-repo --- which of your repos your dot-files come from
-  - root-actions --- shell commands to do just before changing uid to the user
-  - user-actions --- shell commands to do at the end
-  - system-directories --- directories to make as root, should be absolute
-  - user-directories --- directories to make as the user, relative to the user's home directory
-  - web --- a dictionary binding URLs to fetch to the filenames to store them in, where relative filenames are take relative to the user's home directory
+  - root-actions --- a dictionary of shell commands to do just before changing uid to the user, with the directories to do the commands in as keys and the commands as values
+  - user-actions --- a dictionary of shell commands to do at the end, with the directories to do the commands in as keys and the commands as values
+  - system-directories --- directories to create as root, should be absolute
+  - user-directories --- directories to create as the user, relative to the user's home directory
+  - web --- a dictionary binding URLs to fetch to the filenames to store them in, where relative filenames are take relative to the user's home directory and written as the user, and absolute filenames are written as root
