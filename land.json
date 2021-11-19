@@ -274,12 +274,10 @@
 		"git",
 		"make"],
             "pip-install": {
-                "global": {
+                "global": [
                     "pycodestyle",
                     "pep8",
-                    "pylint"
-                }
-            },
+                    "pylint"]},
             "git-repos": ["git@github.com:rust-lang/rust-mode.git"],
             "projects-directory": "open-projects/github.com/hillwithsmallfields",
             "github-list": "https://api.github.com/users/hillwithsmallfields/repos"},
