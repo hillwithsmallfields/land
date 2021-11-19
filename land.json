@@ -60,8 +60,8 @@
 		"music",
 		"utilities",
 		"myself"],
-	    "root-actions": [
-		"systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target"]},
+	    "root-actions": {
+		"/tmp": "systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target"}},
         "personal-laptop": {
             "superclasses": [
 		"assistant",
@@ -223,7 +223,8 @@
                     "torch==1.10.0+cpu torchvision==0.11.1+cpu torchaudio==0.10.0+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html",
                     "torchvision",
                     "torchtext",
-                    "torchaudio"]}},
+                    "torchaudio",
+                    "matplotlib"]}},
 	"proglang": {
 	    "apt-install": [
 		"gcl"]},
@@ -272,6 +273,13 @@
 		"build-essential",
 		"git",
 		"make"],
+            "pip-install": {
+                null: {
+                    "pycodestyle",
+                    "pep8",
+                    "pylint"
+                }
+            },
             "git-repos": ["git@github.com:rust-lang/rust-mode.git"],
             "projects-directory": "open-projects/github.com/hillwithsmallfields",
             "github-list": "https://api.github.com/users/hillwithsmallfields/repos"},
