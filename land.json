@@ -274,7 +274,7 @@
 		"git",
 		"make"],
             "pip-install": {
-                null: {
+                "global": {
                     "pycodestyle",
                     "pep8",
                     "pylint"

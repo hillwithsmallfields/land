@@ -479,7 +479,7 @@ def apply_root_config(configuration):
     if 'pip-install' in configuration:
         logging.info("Installing these packages using pip: %s", ", ".join(configuration['pip-install']))
         for directory, packages in configuration['pip-install'].items():
-            if directory is None or directory == 'None':
+            if directory is None or directory == 'None' or directory == 'global':
                 for package in packages:
                     sh("pip3 install %s" % package)
             else:
@@ -532,7 +532,7 @@ def apply_user_config(configuration, user, user_is_new, home_directory):
         for directory, packages in configuration['pip-install'].items():
             # installs without a specified directory will have been
             # done as global installs, while we were still running as root:
-            if directory is not None and directory != 'None':
+            if directory is not None and directory != 'None' and directory != 'global':
                 if not os.path.isabs(directory):
                     directory = os.path.join(home_directory, directory)
                 if not os.path.isdir(directory):
