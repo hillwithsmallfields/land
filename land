@@ -442,6 +442,9 @@ def assemble_configuration(args):
     # If we're going to get a host class, we will have got it by now:
     activate(configuration.get('host-class'), host_classes, configuration, host_classes)
     activate(description.get('host-class'), host_classes, configuration, host_classes)
+    # for debugging with --dry-run:
+    if 'host-class' not in configuration:
+        configuration['host-class'] = description.get('host-class', 'not specified')
 
     # overrides from the command line:
     for k, v in vars(args).items():
