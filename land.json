@@ -9,7 +9,7 @@
             "host-class": "desktop",
             "no-partition-ops": true,
             "comment": "My main desktop.  Use 'land' after reinstalling the OS."},
-        "10:0b:a9:eb:99:48": {
+        "f0:de:f1:df:fb:1c": {
             "comment": "The laptop covered in conference and project stickers.",
             "hostname": "elijah",
             "no-partition-ops": true,
