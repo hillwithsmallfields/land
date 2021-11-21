@@ -14,7 +14,7 @@
             "hostname": "elijah",
             "no-partition-ops": true,
             "host-class": "personal-laptop"},
-        "*second-laptop-macaddr*": {
+        "f0:de:f1:bf:64:34": {
             "comment": "The sticker-free laptop.",
             "hostname": "elisha",
             "no-partition-ops": true,
