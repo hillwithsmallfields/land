@@ -57,6 +57,7 @@
 		"general",
 		"learning",
 		"making",
+                "mapping",
 		"music",
 		"utilities",
 		"myself"],
@@ -68,6 +69,7 @@
 		"development",
 		"general",
 		"making",
+                "mapping",
 		"music",
 		"myself"]},
         "assistant-pi": {
@@ -140,6 +142,9 @@
                 "git@github.com:hillwithsmallfields/emacs-versor.git",
                 "git@github.com:hillwithsmallfields/JCGS-org-mode.git",
                 "git@github.com:hillwithsmallfields/JCGS-config.git"]},
+        "mapping": {
+            "apt-install": [
+                "openjdk-11-jdk"]},
         "general": {
             "apt-install": [
 		"gdb",
@@ -161,12 +166,23 @@
             "suppress-auto-login": true},
 	"learning": {
 	    "superclasses": [
+                "learning-tools",
 		"learning-machine-learning",
 		"learning-proglang",
                 "learning-systems",
 		"learning-webstuff"],
 	    "apt-install": [
 		"jupyter"]},
+        "learning-tools": {
+            "pip-install": {
+                "Sync/learning/jupyter": [
+                    "jupyter",
+                    "matplotlib",
+                    "numpy",
+                    "pandas",
+                    "scipy",
+                    "scikit-learn"
+                ]}},
 	"learning-proglang": {
 	    "apt-install": [
 		"clojure", "elpa-cider", "leiningen",
@@ -214,17 +230,24 @@
                 "python3-pandas"],
             "user-directories": [
                 "Sync/learning/tensorflow",
-                "Sync/learning/pytorch"],
+                "Sync/learning/pytorch",
+                "Sync/learning/pygad"],
             "comment": "pytorch install instructions are from https://pytorch.org/get-started/locally/",
 	    "pip-install": {
                 "Sync/learning/tensorflow": [
-		    "tensorflow"],
+		    "tensorflow",
+                    "gym",
+                    "pyglet",
+                    "keras-rl2"],
                 "Sync/learning/pytorch": [
                     "torch==1.10.0+cpu torchvision==0.11.1+cpu torchaudio==0.10.0+cpu -f https://download.pytorch.org/whl/cpu/torch_stable.html",
                     "torchvision",
                     "torchtext",
                     "torchaudio",
-                    "matplotlib"]}},
+                    "matplotlib"],
+                "Sync/learning/pygad": [
+                    "pygad"
+                ]}},
 	"proglang": {
 	    "apt-install": [
 		"gcl"]},
