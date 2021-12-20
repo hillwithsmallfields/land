@@ -54,6 +54,7 @@
 		"assistant",
 		"development",
 		"emacs",
+                "entertainment",
 		"general",
 		"learning",
 		"making",
@@ -72,6 +73,9 @@
                 "mapping",
 		"music",
 		"myself"]},
+        "entertainment": {
+            "apt-install": "vlc"
+        },
         "assistant-pi": {
             "pip-remove": [
                 "numpy",
@@ -87,6 +91,7 @@
                           "git@github.com:coddingtonbear/python-myfitnesspal.git",
                           "git@github.com:alphapapa/org-ql.git",
                           "git@github.com:magnars/dash.el.git",
+                          "git@github.com:hniksic/emacs-htmlize.git",
                           "git@github.com:alphapapa/ts.el.git",
                           "git@github.com:magnars/s.el.git",
                           "git@github.com:emacsmirror/peg.git",
@@ -153,7 +158,8 @@
 		"texlive",
                 "pandoc",
                 "plocate",
-		"ratpoison"]},
+		"ratpoison",
+                "rdfind"]},
         "visual": {
             "dot-files": [
                 "xinitrc"]},
@@ -186,6 +192,7 @@
 	"learning-proglang": {
 	    "apt-install": [
 		"clojure", "elpa-cider", "leiningen",
+                "openjdk-17-jdk",
 		"coffeescript",
 		"elixir",
 		"erlang",
@@ -295,7 +302,11 @@
 	    "apt-install": [
 		"build-essential",
 		"git",
-		"make"],
+		"make",
+                "npm"],
+            "other-install": {
+                "npm": [
+                    "source-map-support"]},
             "pip-install": {
                 "global": [
                     "pycodestyle",

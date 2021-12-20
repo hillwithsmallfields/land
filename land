@@ -488,6 +488,11 @@ def apply_root_config(configuration):
             else:
                 # if it's for a specific directory, it will be done in apply_user_config
                 pass
+    if 'other-install' in configuration:
+        for installer, packages in configuration['other-install'].items():
+            logging.info("Installing these packages using %s: %s", ", ".join(packages))
+            for package in packages:
+                sh("%s install %s" % (installer, package))
 
     user, user_is_new = add_user(configuration.get('user'),
                     configuration.get('name'),
@@ -519,7 +524,8 @@ def apply_root_config(configuration):
 
     return user, user_is_new, home_directory
 
-def apply_user_config(configuration, user, user_is_new, home_directory):
+def apply_user_config(configuration,
+                      user, user_is_new, home_directory):
     """Apply the part of the config that is done as the user (as distinct from as root)."""
     get_user_projects(configuration, home_directory)
     get_repos(configuration, home_directory, configuration.get('git-repos'))
@@ -629,7 +635,8 @@ def main():
     else:
         partitions_bytes_used = get_partitions_used()
         if args.user_only:
-            apply_user_config(config, getpass.getuser(), os.path.expanduser("~"))
+            apply_user_config(config,
+                              getpass.getuser(), False, os.path.expanduser("~"))
         else:
             apply_config(config)
         installation_sizes = compare_partitions_used(partitions_bytes_used, get_partitions_used())
