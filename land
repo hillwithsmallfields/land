@@ -493,6 +493,15 @@ def apply_root_config(configuration):
             logging.info("Installing these packages using %s: %s", ", ".join(packages))
             for package in packages:
                 sh("%s install %s" % (installer, package))
+    if 'sea-install' in configuration:
+        urls = configuration['sea-install']
+        logging.info("Installing these packages as self-extracting archives: %s", ", ".join(urls))
+        for url in urls:
+            filename = os.path.join("/tmp", os.path.basename(url))
+            fetch_page(url, filename)
+            os.chmod(filename, 0555)
+            sh(filename)
+            os.remove(filename)
 
     user, user_is_new = add_user(configuration.get('user'),
                     configuration.get('name'),
