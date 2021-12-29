@@ -499,7 +499,7 @@ def apply_root_config(configuration):
         for url in urls:
             filename = os.path.join("/tmp", os.path.basename(url))
             fetch_page(url, filename)
-            os.chmod(filename, 0555)
+            os.chmod(filename, 0o555)
             sh(filename)
             os.remove(filename)
 
