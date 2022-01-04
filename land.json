@@ -30,7 +30,7 @@
             "comment": "Whortleberry will move to this once replaced as the noticeboard computer (Pi 2).",
             "hostname": "whortleberry",
             "host-class": "charger-assistant"},
-        "b8:27:eb:b1:85:7a": {
+        "b8:27:eb:e4:d0:2f": {
             "hostname": "fragaria",
             "comment": "workbench machine for experiments (Pi 3); for now using the noticeboard configuration while I develop the noticeboard auxiliary hardware.",
             "host-class": "noticeboard"}},
@@ -307,6 +307,8 @@
             "other-install": {
                 "npm": [
                     "source-map-support"]},
+            "sea-install": [
+                "https://download.clojure.org/install/linux-install-1.10.3.1040.sh"],
             "pip-install": {
                 "global": [
                     "pycodestyle",
