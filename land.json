@@ -162,7 +162,14 @@
                 "rdfind"]},
         "visual": {
             "dot-files": [
-                "xinitrc"]},
+                "xinitrc"],
+            "copy-configs": {
+                "~pi/.config/lxterminal": "~/.config"},
+            "edit-configs": {
+                "~/.config/lxterminal/lxterminal.conf": {
+                    "fontname=.+": "fontname=Monospace 12",
+                    "bgcolor=.+": "bgcolor=rgb(255,255,255)",
+                    "fgcolor=.+": "fgcolor=rgb(99,69,44)"}}},
         "raspberry pi": {
             "mounts": {
                 "/dev/sda1": {

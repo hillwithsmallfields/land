@@ -62,6 +62,8 @@ The values in this section are dictionaries which can bind:
   - pip-remove --- a list of packages to remove with pip3 (so you can re-install them with apt)
   - git-repos --- a list of clone URLs to use
   - dot-files --- a list of files to copy from your designated config-repo; the names in the repo need not have the initial dot
+  - copy-configs --- a dictionary mapping origin directories to places to copy them (for example from a template user)
+  - edit-configs --- a dictionary mapping filenames to dictionaries mapping regexps to replacement strings
   - mounts --- a dictionary binding partition names to dictionaries defining:
   - - mount-point --- where in the filesystem to mount the ext-drive
   - - link-to-home --- if given, a directory to symlink each directory entry in the mount-point into
