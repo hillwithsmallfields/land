@@ -626,6 +626,9 @@ def main():
                         default="landing.log")
     parser.add_argument("--loglevel",
                         help="""The loglevel to set.""")
+    parser.add_argument("--verbose", "-v",
+                        action='store_true',
+                        help="""Produce more output.""")
     args = parser.parse_args()
 
     logger = logging.getLogger('lander')
@@ -639,9 +642,9 @@ def main():
 
     config = assemble_configuration(args)
 
-    if args.dry_run:
+    if args.dry_run or args.verbose:
         print("Assembled configuration", json.dumps(config, indent=4))
-    else:
+    if not args.dry_run:
         partitions_bytes_used = get_partitions_used()
         if args.user_only:
             apply_user_config(config,
