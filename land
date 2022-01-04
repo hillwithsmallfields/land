@@ -503,12 +503,15 @@ def apply_root_config(configuration):
             sh(filename)
             os.remove(filename)
 
-    user, user_is_new = add_user(configuration.get('user'),
-                    configuration.get('name'),
-                    hostname)
-    home_directory = (pwd.getpwnam(user)[5]
-                      if user
-                      else os.path.join("/home", configuration.get('user')))
+    user, user_is_new = None, False
+    username = configuration.get('user')
+    if username:
+        user, user_is_new = add_user(username,
+                        configuration.get('name'),
+                        hostname)
+        home_directory = (pwd.getpwnam(user)[5]
+                          if user
+                          else os.path.join("/home", configuration.get('user')))
 
     if not configuration.get('no-partition-ops', False):
         for ext_disk, mount_description in configuration.get('mounts', {}).items():
