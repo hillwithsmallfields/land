@@ -164,9 +164,9 @@
             "dot-files": [
                 "xinitrc"],
             "copy-configs": {
-                "~pi/.config/lxterminal": "~/.config"},
+                "~pi/.config/lxterminal": "~%s/.config"},
             "edit-configs": {
-                "~/.config/lxterminal/lxterminal.conf": {
+                "~%s/.config/lxterminal/lxterminal.conf": {
                     "fontname=.+": "fontname=Monospace 12",
                     "bgcolor=.+": "bgcolor=rgb(255,255,255)",
                     "fgcolor=.+": "fgcolor=rgb(99,69,44)"}}},

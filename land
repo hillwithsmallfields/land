@@ -602,9 +602,9 @@ def apply_user_config(configuration,
         logging.info("Creating user directory %s", user_directory)
         os.makedirs(os.path.join(home_directory, user_directory), dirmask, True)
     for config_source, config_dest in configuration.get('copy-configs', {}).items():
-        copy_user_config_files(config_source, config_dest)
+        copy_user_config_files(config_source, config_dest % (user or ""))
     for filename, edits in configuration.get('edit-configs', {}).items():
-        replace_regexps_in_file(filename, edits)
+        replace_regexps_in_file(filename % (user or ""), edits)
     for user_action, directory in configuration.get('user-actions', {}).items():
         logging.info("Running user action '%s' in directory %s", user_action, directory)
         os.chdir(directory)
