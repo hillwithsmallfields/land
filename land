@@ -557,7 +557,7 @@ def apply_root_config(configuration):
         print("copying", os.path.expanduser(config_source), "to", config_dest)
         shutil.copytree(os.path.expanduser(config_source), config_dest)
         if user:
-            sh("chown -R %s:%s %s", user, user, config_dest)
+            sh("chown -R %s:%s %s" % (user, user, config_dest))
     for directory, root_action in configuration.get('root-actions', {}).items():
         logging.info("Running action '%s' as root, in directory %s", root_action, directory)
         os.chdir(directory)
