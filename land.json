@@ -164,7 +164,7 @@
             "dot-files": [
                 "xinitrc"],
             "copy-configs": {
-                "~pi/.config/lxterminal": "~%s/.config"},
+                "~pi/.config": "~%s/.config"},
             "edit-configs": {
                 "~%s/.config/lxterminal/lxterminal.conf": {
                     "fontname=.+": "fontname=Monospace 12",
