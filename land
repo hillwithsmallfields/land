@@ -291,10 +291,6 @@ def install_dotfiles(configuration, home_directory):
                                           if dot_file.startswith(".")
                                           else ("." + dot_file))))
 
-def set_permissions_for_copying(template_directory):
-    """Set the permissions for copying."""
-    sh("chmod -R a+rx " + template_directory)
-
 def copy_user_config_files(template_directory, dest):
     """Copy files from a template directory to the new user."""
     dest = os.path.expanduser(dest)
@@ -554,8 +550,13 @@ def apply_root_config(configuration):
     for system_directory in configuration.get('system-directories', []):
         logging.info("Making system directory %s", system_directory)
         os.makedirs(system_directory, dirmask, True)
-    for config_source in configuration.get('copy-configs', {}).keys():
-        set_permissions_for_copying(config_source)
+    for config_source, config_dest in configuration.get('copy-configs', {}).items():
+        # sh("chmod -R a+rx " + config_source) # shouldn't need, as am root
+        config_dest = os.path.expanduser(config_dest % (user or ""))
+        os.makedirs(config_dest, dirmask, True)
+        shutil.copytree(os.path.expanduser(config_source), config_dest)
+        if user:
+            sh("chown -R %s:%s %s", user, user, config_dest)
     for directory, root_action in configuration.get('root-actions', {}).items():
         logging.info("Running action '%s' as root, in directory %s", root_action, directory)
         os.chdir(directory)
@@ -601,8 +602,6 @@ def apply_user_config(configuration,
     for user_directory in configuration.get('user-directories', []):
         logging.info("Creating user directory %s", user_directory)
         os.makedirs(os.path.join(home_directory, user_directory), dirmask, True)
-    for config_source, config_dest in configuration.get('copy-configs', {}).items():
-        copy_user_config_files(config_source, config_dest % (user or ""))
     for filename, edits in configuration.get('edit-configs', {}).items():
         replace_regexps_in_file(filename % (user or ""), edits)
     for user_action, directory in configuration.get('user-actions', {}).items():
