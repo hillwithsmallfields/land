@@ -553,7 +553,8 @@ def apply_root_config(configuration):
     for config_source, config_dest in configuration.get('copy-configs', {}).items():
         # sh("chmod -R a+rx " + config_source) # shouldn't need, as am root
         config_dest = os.path.expanduser(config_dest % (user or ""))
-        os.makedirs(config_dest, dirmask, True)
+        # os.makedirs(config_dest, dirmask, True)
+        print("copying", os.path.expanduser(config_source), "to", config_dest)
         shutil.copytree(os.path.expanduser(config_source), config_dest)
         if user:
             sh("chown -R %s:%s %s", user, user, config_dest)
