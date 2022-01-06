@@ -228,7 +228,12 @@
         "learning-systems": {
             "apt-install": [
                 "memcached",
-                "redis"]},
+                "redis"],
+            "pip-install": {
+                "Sync/learning/databases/sql/py-mysql": [
+                    "mysql-connector-python"],
+                "Sync/learning/databases/sql/py-pgsql": [
+                    "psycopg2"]}},
 	"learning-webstuff": {
 	    "apt-install": [
                 "nginx",
