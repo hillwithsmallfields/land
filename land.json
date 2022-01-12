@@ -47,6 +47,9 @@
         "noticeboard": {
             "comment": "My main organizational assistant: a noticeboard with a screen embedded in it.",
             "superclasses": ["assistant", "assistant-pi", "raspberry pi"],
+            "pip-install" {
+                "open-projects/github.com/hillwithsmallfields/noticeboard": [
+                    "picamera"]},
             "apt-install": [
                 "motion"]},
         "desktop": {
@@ -156,6 +159,7 @@
 		"gnuplot",
 		"keepass2",
 		"texlive",
+                "texlive-latex-extra",
                 "pandoc",
                 "plocate",
 		"ratpoison",
@@ -228,7 +232,9 @@
         "learning-systems": {
             "apt-install": [
                 "memcached",
-                "redis"],
+                "redis",
+                "postgresql",
+                "postgresql-client"],
             "pip-install": {
                 "Sync/learning/databases/sql/py-mysql": [
                     "mysql-connector-python"],
