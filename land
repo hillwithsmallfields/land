@@ -595,7 +595,7 @@ def apply_user_config(configuration,
                 env_dir = os.path.join(directory, env_name)
                 if not os.path.isdir(env_dir):
                     logging.info("creating virtual environment %s", env_dir)
-                    sh("python3 -m venv " + env_name)
+                    sh("python3 -m venv --system-site-packages " + env_name)
                 logging.debug("Running: '. %s/bin/activate; pip3 install %s' in directory %s", env_dir, packages, directory)
                 print("Running: '. %s/bin/activate; pip3 install %s' in directory %s" % (env_dir, packages, directory))
                 sh(". %s/bin/activate; pip3 install %s" % (env_dir, " ".join(packages)))
