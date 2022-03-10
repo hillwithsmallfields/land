@@ -523,6 +523,9 @@ def apply_root_config(configuration):
             os.chmod(filename, 0o555)
             sh(filename)
             os.remove(filename)
+    for dtoverlay in configuration.get('dtoverlay', []):
+        line = "dtoverlay=" + dtoverlay
+        append_to_file_if_missing("/boot/config.txt", dtoverlay, dtoverlay)
 
     user, user_is_new = None, False
     username = configuration.get('user')
