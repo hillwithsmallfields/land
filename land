@@ -557,11 +557,14 @@ def apply_root_config(configuration):
         # sh("chmod -R a+rx " + config_source) # shouldn't need, as am root
         config_dest = os.path.expanduser(config_dest % (user or ""))
         # os.makedirs(config_dest, dirmask, True)
-        print("copying", os.path.expanduser(config_source), "to", config_dest)
-        shutil.copytree(os.path.expanduser(config_source), config_dest)
-        if user:
-            sh("chown -R %s:%s %s" % (user, user, config_dest))
-            sh("chmod -R a+rx %s" % config_dest)
+        if os.path.exists(config_dest):
+            print("not copying", os.path.expanduser(config_source), "to", config_dest, "because the destination already exists")
+        else:
+            print("copying", os.path.expanduser(config_source), "to", config_dest)
+            shutil.copytree(os.path.expanduser(config_source), config_dest)
+            if user:
+                sh("chown -R %s:%s %s" % (user, user, config_dest))
+                sh("chmod -R a+rx %s" % config_dest)
     for directory, root_action in configuration.get('root-actions', {}).items():
         logging.info("Running action '%s' as root, in directory %s", root_action, directory)
         os.chdir(directory)
