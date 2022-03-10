@@ -416,6 +416,7 @@ def get_repos(configuration, home_directory, repos):
                 os.chdir(repodir)
                 sh("git config pull.rebase false")
                 git_config_file =  os.path.join(repodir, ".git", "config")
+                config_aside = git_config_file + "_old"
                 shutil.copy(git_config_file, config_aside)
                 replace_string_in_file(git_config_file,
                                        "git@github.com:",
