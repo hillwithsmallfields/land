@@ -47,7 +47,7 @@
         "noticeboard": {
             "comment": "My main organizational assistant: a noticeboard with a screen embedded in it.",
             "superclasses": ["assistant", "assistant-pi", "raspberry pi"],
-            "pip-install" {
+            "pip-install": {
                 "open-projects/github.com/hillwithsmallfields/noticeboard": [
                     "picamera"]},
             "apt-install": [
