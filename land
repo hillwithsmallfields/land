@@ -312,16 +312,8 @@ def git_clone(repo, git_target_protocol='git'):
     Since .ssh isn't yet set up, fetch with http and optionally patch it to look
     like .git afterwards."""
     directory = os.path.basename(repo)[:-4]
-    git_config_file = os.path.join(directory, ".git", "config")
     if os.path.isdir(directory):
-        config_aside = git_config_file + "_old"
-        logging.info("pulling %s in %s, as it already exists, instead of cloning it", repo, directory)
-        shutil.copy(git_config_file, config_aside)
-        replace_string_in_file(git_config_file,
-                               "git@github.com:",
-                               "https://github.com/")
-        sh("git pull")
-        shutil.copy(config_aside, git_config_file)
+        logging.info("not cloning %s into %s, as it already exists", repo, directory)
     else:
         logging.info("cloning %s into %s", repo, directory)
         print("cloning %s into %s" % (repo, directory))
@@ -331,7 +323,7 @@ def git_clone(repo, git_target_protocol='git'):
         print("cloning", repo)
         sh("git clone " + repo)
         if repo != original and git_target_protocol == 'git':
-            replace_string_in_file(git_config_file,
+            replace_string_in_file(os.path.join(directory, ".git", "config"),
                                    "https://github.com/",
                                    "git@github.com:")
         sh("git config pull.ff only")
@@ -422,7 +414,15 @@ def get_repos(configuration, home_directory, repos):
                 logging.info("updating %s", repo)
                 print("updating", repo)
                 os.chdir(repodir)
+                sh("git config pull.rebase false")
+
+                git_config_file =  os.path.join(directory, ".git", "config")
+                shutil.copy(git_config_file, config_aside)
+                replace_string_in_file(git_config_file,
+                                       "git@github.com:",
+                                       "https://github.com/")
                 sh("git pull")
+                shutil.copy(config_aside, git_config_file)
             else:
                 logging.info("cloning %s under author directory %s", repo, author_directory)
                 print("cloning %s under author directory %s" % (repo, author_directory))
