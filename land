@@ -148,9 +148,9 @@ def get_partitions_free():
 
 def compare_partitions_used(old, new):
     """Compare two dictionaries of bytes used per partition."""
-    return {partition: used - old[partition]
+    return {partition: used - old.get(partition, 0)
             for partition, used in new.items()
-            if used != old[partition]}
+            if used != old.get(partition, 0)}
 
 ##########################
 # Configuration handling #
