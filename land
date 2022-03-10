@@ -251,6 +251,8 @@ def add_user(user, name, hostname):
                               user,
                               "%s    ALL=(ALL:ALL) ALL\n" % user)
 
+    sh("git config --global pull.rebase false")
+
     append_to_lines_starting("/etc/group",
                              "gpio",
                              "," + user)
@@ -310,7 +312,17 @@ def git_clone(repo, git_target_protocol='git'):
     Since .ssh isn't yet set up, fetch with http and optionally patch it to look
     like .git afterwards."""
     directory = os.path.basename(repo)[:-4]
-    if not os.path.isdir(directory):
+    git_config_file = os.path.join(directory, ".git", "config")
+    if os.path.isdir(directory):
+        config_aside = git_config_file + "_old"
+        logging.info("pulling %s in %s, as it already exists, instead of cloning it", repo, directory)
+        shutil.copy(git_config_file, config_aside)
+        replace_string_in_file(git_config_file,
+                               "git@github.com:",
+                               "https://github.com/")
+        sh("git pull")
+        shutil.copy(config_aside, git_config_file)
+    else:
         logging.info("cloning %s into %s", repo, directory)
         print("cloning %s into %s" % (repo, directory))
         original = repo
@@ -319,7 +331,7 @@ def git_clone(repo, git_target_protocol='git'):
         print("cloning", repo)
         sh("git clone " + repo)
         if repo != original and git_target_protocol == 'git':
-            replace_string_in_file(os.path.join(directory, ".git", "config"),
+            replace_string_in_file(git_config_file,
                                    "https://github.com/",
                                    "git@github.com:")
         sh("git config pull.ff only")
