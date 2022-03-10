@@ -1,7 +1,7 @@
 {
     "hosts": {
         "dc:a6:32:78:97:ed": {
-            "comment": "This will be the new noticeboard computer.",
+            "comment": "The new noticeboard computer.",
             "hostname": "shtogu",
             "host-class": "noticeboard"},
         "60:a4:4c:31:61:26": {
@@ -32,8 +32,8 @@
             "host-class": "charger-assistant"},
         "b8:27:eb:e4:d0:2f": {
             "hostname": "fragaria",
-            "comment": "workbench machine for experiments (Pi 3); for now using the noticeboard configuration while I develop the noticeboard auxiliary hardware.",
-            "host-class": "noticeboard"}},
+            "comment": "workbench machine for experiments (Pi 3)",
+            "host-class": "assistant-pi"}},
 
     "host-classes": {
         "charger-assistant": {
@@ -79,6 +79,10 @@
         "entertainment": {
             "apt-install": "vlc"
         },
+        "temperature-monitor": {
+            "dtoverlay": [
+                "w1-gpio"
+            ]},
         "assistant-pi": {
             "pip-remove": [
                 "numpy",
