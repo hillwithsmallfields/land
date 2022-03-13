@@ -46,7 +46,7 @@
             "TODO": "load mycroft stuff here"},
         "noticeboard": {
             "comment": "My main organizational assistant: a noticeboard with a screen embedded in it.",
-            "superclasses": ["assistant", "assistant-pi", "raspberry pi"],
+            "superclasses": ["assistant", "assistant-pi", "raspberry pi", "music"],
             "pip-install": {
                 "open-projects/github.com/hillwithsmallfields/noticeboard": [
                     "picamera"]},
@@ -173,6 +173,8 @@
                 "xinitrc"],
             "copy-configs": {
                 "~pi/.config": "~%s/.config"},
+            "apt-install": [
+                "gnome-tweaks"],
             "edit-configs": {
                 "~%s/.config/lxterminal/lxterminal.conf": {
                     "fontname=.+": "fontname=Monospace 12",
