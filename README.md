@@ -12,6 +12,17 @@ Configurable using JSON, so the command lines don't get out of hand
 Also includes an Arduino sketch (not yet complete) for autotyping the
 commands to do the setup (for Arduino Micro and the keyboard library).
 
+Running the program
+===================
+
+Run the program like this (all on one line):
+
+```curl https://raw.githubusercontent.com/hillwithsmallfields/land/trunk/land | sudo python3```
+
+If you need to give command-line options, provide them after the (empty) python interpreter options:
+
+```curl https://raw.githubusercontent.com/hillwithsmallfields/land/trunk/land | sudo python3 - --host-class workshop-laptop```
+
 The configuration file
 ======================
 
