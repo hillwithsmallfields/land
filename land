@@ -148,9 +148,9 @@ def get_partitions_free():
 
 def compare_partitions_used(old, new):
     """Compare two dictionaries of bytes used per partition."""
-    return {partition: used - old[partition]
+    return {partition: used - old.get(partition, 0)
             for partition, used in new.items()
-            if used != old[partition]}
+            if used != old.get(partition, 0)}
 
 ##########################
 # Configuration handling #
@@ -251,6 +251,8 @@ def add_user(user, name, hostname):
                               user,
                               "%s    ALL=(ALL:ALL) ALL\n" % user)
 
+    sh("git config --global pull.rebase false")
+
     append_to_lines_starting("/etc/group",
                              "gpio",
                              "," + user)
@@ -310,7 +312,9 @@ def git_clone(repo, git_target_protocol='git'):
     Since .ssh isn't yet set up, fetch with http and optionally patch it to look
     like .git afterwards."""
     directory = os.path.basename(repo)[:-4]
-    if not os.path.isdir(directory):
+    if os.path.isdir(directory):
+        logging.info("not cloning %s into %s, as it already exists", repo, directory)
+    else:
         logging.info("cloning %s into %s", repo, directory)
         print("cloning %s into %s" % (repo, directory))
         original = repo
@@ -410,7 +414,15 @@ def get_repos(configuration, home_directory, repos):
                 logging.info("updating %s", repo)
                 print("updating", repo)
                 os.chdir(repodir)
+                sh("git config pull.rebase false")
+                git_config_file =  os.path.join(repodir, ".git", "config")
+                config_aside = git_config_file + "_old"
+                shutil.copy(git_config_file, config_aside)
+                replace_string_in_file(git_config_file,
+                                       "git@github.com:",
+                                       "https://github.com/")
                 sh("git pull")
+                shutil.copy(config_aside, git_config_file)
             else:
                 logging.info("cloning %s under author directory %s", repo, author_directory)
                 print("cloning %s under author directory %s" % (repo, author_directory))
@@ -523,6 +535,9 @@ def apply_root_config(configuration):
             os.chmod(filename, 0o555)
             sh(filename)
             os.remove(filename)
+    for dtoverlay in configuration.get('dtoverlay', []):
+        line = "dtoverlay=" + dtoverlay
+        append_to_file_if_missing("/boot/config.txt", dtoverlay, dtoverlay)
 
     user, user_is_new = None, False
     username = configuration.get('user')
@@ -554,11 +569,14 @@ def apply_root_config(configuration):
         # sh("chmod -R a+rx " + config_source) # shouldn't need, as am root
         config_dest = os.path.expanduser(config_dest % (user or ""))
         # os.makedirs(config_dest, dirmask, True)
-        print("copying", os.path.expanduser(config_source), "to", config_dest)
-        shutil.copytree(os.path.expanduser(config_source), config_dest)
-        if user:
-            sh("chown -R %s:%s %s" % (user, user, config_dest))
-            sh("chmod -R a+rx %s" % config_dest)
+        if os.path.exists(config_dest):
+            print("not copying", os.path.expanduser(config_source), "to", config_dest, "because the destination already exists")
+        else:
+            print("copying", os.path.expanduser(config_source), "to", config_dest)
+            shutil.copytree(os.path.expanduser(config_source), config_dest)
+            if user:
+                sh("chown -R %s:%s %s" % (user, user, config_dest))
+                sh("chmod -R a+rx %s" % config_dest)
     for directory, root_action in configuration.get('root-actions', {}).items():
         logging.info("Running action '%s' as root, in directory %s", root_action, directory)
         os.chdir(directory)
