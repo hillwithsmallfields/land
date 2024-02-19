@@ -676,14 +676,7 @@ def apply_config(configuration):
     switch_to_user(user)
     apply_user_config(configuration, user, user_is_new, home_directory)
 
-################
-# Main program #
-################
-
-def main():
-
-    start_time = time.time()
-
+def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--user",
                         help="""The account name of the user to create.""")
@@ -718,24 +711,42 @@ def main():
     parser.add_argument("--verbose", "-v",
                         action='store_true',
                         help="""Produce more output.""")
-    args = parser.parse_args()
+    return vars(parser.parse_args())
+
+################
+# Main program #
+################
+
+def main(user,
+         name,
+         host,
+         config,
+         dry_run: bool,
+         mac_addr,
+         host_class,
+         user_only: bool,
+         logfile,
+         loglevel,
+         verbose: bool):
+
+    start_time = time.time()
 
     logger = logging.getLogger('lander')
-    logging.basicConfig(filename=args.logfile)
-    if args.loglevel:
-        logger.setLevel(args.loglevel.upper())
+    logging.basicConfig(filename=logfile)
+    if loglevel:
+        logger.setLevel(loglevel.upper())
 
-    if getpass.getuser() != 'root' and not args.dry_run and not args.user_only:
+    if getpass.getuser() != 'root' and not dry_run and not user_only:
         print("This program must be run as root")
         sys.exit(1)
 
-    config = assemble_configuration(args)
+    config = assemble_configuration(
 
-    if args.dry_run or args.verbose:
+    if dry_run or verbose:
         print("Assembled configuration", json.dumps(config, indent=4))
-    if not args.dry_run:
+    if not dry_run:
         partitions_bytes_used = get_partitions_used()
-        if args.user_only:
+        if user_only:
             apply_user_config(config,
                               getpass.getuser(), False, os.path.expanduser("~"))
         else:
@@ -749,4 +760,4 @@ def main():
     logging.info("Setup took", time.time() - start_time, "seconds.")
 
 if __name__ == "__main__":
-    main()
+    main(**get_args())
