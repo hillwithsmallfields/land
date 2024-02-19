@@ -23,6 +23,24 @@ import time
 import urllib.request
 import uuid
 
+#############
+# Constants #
+#############
+
+BUILD_INSTRUCTIONS = {
+    'python': {
+         "sudo apt update && sudo apt upgrade -y",
+         "wget https://www.python.org/ftp/python/%(version)s/Python-%(version)s.tgz",
+         "tar -xf Python-%(version)s.tgz",
+         "cd Python-%(version)s",
+         "./configure --enable-optimizations",
+         "make -j 4",
+         "sudo make altinstall",
+         "update-alternatives --install /usr/bin/python python /usr/bin/python%(version)s 1",
+         "update-alternatives --install /usr/bin/python3 python3 /usr/bin/python%(version)s 1",
+    ]
+}
+
 ##########################
 # File and text handling #
 ##########################
@@ -208,6 +226,17 @@ def get_configuration(confname, classes, existing=None):
     merge(existing, conf)
     get_includes(existing, classes)
     return existing
+
+#################################
+# Installing things from source #
+#################################
+
+def build(build_spec):
+    logging.info("building %s", build_spec)
+    for step in BUILD_INSTRUCTIONS[build_spec['package']]:
+        if subprocess.run(step % build_spec, shell=True).returncode != 0:
+            logging.error("step %s of build %s failed", step, build_spec['package'])
+            break
 
 #######################
 # Host and user setup #
@@ -486,6 +515,9 @@ def assemble_configuration(args):
 
     return configuration
 
+def install_is_global(install_directory):
+    return install_directory in [None, 'None', 'global']
+
 def apply_root_config(configuration):
     """Apply the part of the config that is done as root (as distinct from as the user)."""
     if configuration.get('hostname', "") != "":
@@ -512,10 +544,13 @@ def apply_root_config(configuration):
         logging.info("Installing these packages using apt: %s", ", ".join(configuration['apt-install']))
         for package in configuration['apt-install']:
             sh("apt-get install --assume-yes %s" % package)
+    if 'build' in configuration:
+        for build_spec in configuration['build']:
+            build(build_spec)
     if 'pip-install' in configuration:
         logging.info("Installing these packages using pip: %s", ", ".join(configuration['pip-install']))
         for directory, packages in configuration['pip-install'].items():
-            if directory is None or directory == 'None' or directory == 'global':
+            if install_is_global(directory):
                 for package in packages:
                     sh("pip3 install %s" % package)
             else:
@@ -601,7 +636,7 @@ def apply_user_config(configuration,
         for directory, packages in configuration['pip-install'].items():
             # installs without a specified directory will have been
             # done as global installs, while we were still running as root:
-            if directory is not None and directory != 'None' and directory != 'global':
+            if not install_is_global(directory):
                 if not os.path.isabs(directory):
                     directory = os.path.join(home_directory, directory)
                 if not os.path.isdir(directory):
