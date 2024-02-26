@@ -715,7 +715,7 @@ def get_args():
     parser.add_argument("--verbose", "-v",
                         action='store_true',
                         help="""Produce more output.""")
-    return vars(parser.parse_args())
+    return parser.parse_args()
 
 ################
 # Main program #
@@ -736,21 +736,21 @@ def main(args):
     start_time = time.time()
 
     logger = logging.getLogger('lander')
-    logging.basicConfig(filename=args['logfile'])
-    if args['loglevel']:
-        logger.setLevel(args['loglevel'].upper())
+    logging.basicConfig(filename=args.logfile )
+    if args.loglevel:
+        logger.setLevel(args.loglevel.upper())
 
-    if getpass.getuser() != 'root' and not args['dry_run'] and not args['user_only']:
+    if getpass.getuser() != 'root' and not args.dry_run and not args.user_only:
         print("This program must be run as root")
         sys.exit(1)
 
     config = assemble_configuration(args)
 
-    if args['dry_run'] or args['verbose']:
+    if args.dry_run or args.verbose:
         print("Assembled configuration", json.dumps(config, indent=4))
-    if not args['dry_run']:
+    if not args.dry_run:
         partitions_bytes_used = get_partitions_used()
-        if args['user_only']:
+        if args.user_only:
             apply_user_config(config,
                               getpass.getuser(), False, os.path.expanduser("~"))
         else:
