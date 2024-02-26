@@ -740,7 +740,7 @@ def main(user,
         print("This program must be run as root")
         sys.exit(1)
 
-    config = assemble_configuration(
+    config = assemble_configuration(args)
 
     if dry_run or verbose:
         print("Assembled configuration", json.dumps(config, indent=4))
