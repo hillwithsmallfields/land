@@ -1,5 +1,9 @@
 {
     "hosts": {
+        "d8:3a:dd:d5:3e:92": {
+            "comment": "Raspberry Pi 5",
+            "hostname": "dardhe",
+            "host-class": "assistant"},
         "dc:a6:32:78:97:ed": {
             "comment": "The new noticeboard computer.",
             "hostname": "shtogu",
@@ -23,17 +27,17 @@
             "hostname": "shteg",
             "host-class": "voice-assistant"},
         "b8:27:eb:f7:3a:b4": {
-            "comment": "This is the old/current noticeboard computer, and will become the garage computer (Pi 2).",
-            "hostname": "whortleberry",
-            "host-class": "noticeboard"},
-        "*garage-host-macaddr*": {
             "comment": "Whortleberry will move to this once replaced as the noticeboard computer (Pi 2).",
             "hostname": "whortleberry",
             "host-class": "charger-assistant"},
         "b8:27:eb:e4:d0:2f": {
             "hostname": "fragaria",
             "comment": "workbench machine for experiments (Pi 3)",
-            "host-class": "assistant-pi"}},
+            "host-class": "assistant-pi"},
+        "dc:a6:32:e1:53:05": {
+            "comment": "8Gb pi currently serving as a cluster host",
+            "hostname": "grumbulli",
+            "host-class": "cluster"}},
 
     "host-classes": {
         "charger-assistant": {
@@ -44,6 +48,9 @@
             "comment": "My usual organizational assistant, plus Mycroft.ai.",
             "superclasses": ["assistant", "assistant-pi", "raspberry pi"],
             "TODO": "load mycroft stuff here"},
+        "home-assistant": {
+            "comment": "For running Home Assistant in a docker container, with Mosquitto."
+        }, 
         "noticeboard": {
             "comment": "My main organizational assistant: a noticeboard with a screen embedded in it.",
             "superclasses": ["assistant", "assistant-pi", "raspberry pi", "music"],
@@ -92,8 +99,6 @@
             "superclasses": ["emacs", "myself"],
             "git-repos": ["git@github.com:hillwithsmallfields/noticeboard.git",
                           "git@github.com:hillwithsmallfields/qs.git",
-                          "git@github.com:hillwithsmallfields/coimealta.git",
-                          "git@github.com:hillwithsmallfields/makers.git",
                           "git@github.com:hillwithsmallfields/Simple_client_server.git",
                           "git@github.com:coddingtonbear/python-myfitnesspal.git",
                           "git@github.com:alphapapa/org-ql.git",
@@ -106,7 +111,9 @@
                           "git@github.com:Wilfred/ht.el.git",
                           "git@github.com:emacsorphanage/ov.git"],
             "explanation": "We need to remove the pre-installed versions of numpy and pandas so we can replace them with the ones from apt.",
-            "In progress": "install throw_out_your_templates_p3 (it is in makers.git) and make it accessible from qs/dashboard/dashboard.py",
+            "build": [
+                {"package": "python", "version": "3.12.0"}
+            ],
             "apt-install": [
                 "festival",
                 "inotify-tools",
@@ -117,21 +124,25 @@
             "pip-install": {
                 "open-projects/github.com/hillwithsmallfields/noticeboard": [
                     "Crypto",
+                    "coimealta",
                     "cssutils",
-                    "lxml",
-                    "python-decouple",
+                    "dobishem",
+                    "expressionive",
+                    "frozendict",
+                    "inotify",
                     "keyring",
+                    "lxml",
                     "matplotlib",
                     "measurement",
+                    "numpy",
                     "ordered_set",
                     "oura",
                     "overpass2",
                     "pycrypto",
                     "pyowm",
+                    "python-decouple",
                     "pyyaml",
-                    "sexpdata",
-                    "typing_extensions",
-                    "talkey"]},
+                    "typing_extensions"]},
             "user-directories": [
                 "private_html",
                 "public_html",
@@ -187,6 +198,8 @@
                     "link-to-home": true,
                     "take-ownership": true}},
             "suppress-auto-login": true},
+        "cluster": {
+        },
 	"learning": {
 	    "superclasses": [
                 "learning-tools",
