@@ -102,6 +102,8 @@
                           "git@github.com:hillwithsmallfields/Simple_client_server.git",
                           "git@github.com:coddingtonbear/python-myfitnesspal.git",
                           "git@github.com:alphapapa/org-ql.git",
+                          "git@github.com:rejeep/f.el.git",
+                          "git@github.com:emacs-compat/compat.git",
                           "git@github.com:magnars/dash.el.git",
                           "git@github.com:hniksic/emacs-htmlize.git",
                           "git@github.com:alphapapa/ts.el.git",
@@ -142,6 +144,8 @@
                     "pyowm",
                     "python-decouple",
                     "pyyaml",
+                    "tabular_page_maker",
+                    "timetable_announcer",
                     "typing_extensions"]},
             "user-directories": [
                 "private_html",
