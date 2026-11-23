@@ -279,7 +279,7 @@
                 "debgpt",
                 "elpa-llama",
                 "llm",
-                "python3-ollama"
+                "python3-ollama",
 		"python3-keras",
 		"python3-onnx",
 		"python3-sklearn",
