@@ -96,16 +96,8 @@
             "pip-remove": [
                 "numpy",
                 "pandas"]},
-        "ai-experiments": {
-            "apt-install": [
-                "debgpt",
-                "elpa-llama",
-                "llm",
-                "python3-ollama"
-            ]
-        },
-        "research-assistant": {
-            "superclasses": ["assistant", "ai-experiments"]
+        "learning-assistant": {
+            "superclasses": ["assistant", "learning"]
         },
         "assistant": {
             "comment": "My main personal organizing and Quantified Self system.  I couldn't get orq-ql to install the proper way so I fetched all that lot as repositories.",
@@ -280,9 +272,14 @@
 	    "apt-install": [
                 "nginx",
 		"ruby-rails",
-		"python-flask"]},
+                "python3-fastapi",
+		"python3-flask"]},
 	"learning-machine-learning": {
 	    "apt-install": [
+                "debgpt",
+                "elpa-llama",
+                "llm",
+                "python3-ollama"
 		"python3-keras",
 		"python3-onnx",
 		"python3-sklearn",
