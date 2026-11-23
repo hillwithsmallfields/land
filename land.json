@@ -84,7 +84,9 @@
 		"music",
 		"myself"]},
         "entertainment": {
-            "apt-install": "vlc"
+            "apt-install": [
+                "vlc"
+            ]
         },
         "temperature-monitor": {
             "dtoverlay": [
@@ -94,6 +96,17 @@
             "pip-remove": [
                 "numpy",
                 "pandas"]},
+        "ai-experiments": {
+            "apt-install": [
+                "debgpt",
+                "elpa-llama",
+                "llm",
+                "python3-ollama"
+            ]
+        },
+        "research-assistant": {
+            "superclasses": ["assistant", "ai-experiments"]
+        },
         "assistant": {
             "comment": "My main personal organizing and Quantified Self system.  I couldn't get orq-ql to install the proper way so I fetched all that lot as repositories.",
             "superclasses": ["emacs", "myself"],
